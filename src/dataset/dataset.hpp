@@ -1,6 +1,5 @@
 #pragma once
 
-#include <bits/stdc++.h>
 #include <ranges>
 #include "column.hpp"
 #include "feature_info.hpp"
@@ -16,6 +15,9 @@ private:
     std::vector<std::string> m_column_names;
     std::unordered_map<std::string, Column> m_columns;
 
+    std::string m_target_name;
+    Column m_target_column;
+
 public:
     DatasetInfo analyse() const;
 
@@ -27,5 +29,5 @@ public:
         CategoryEncoding encoding,
         Layout layout) const;
 
-    static Dataset load_dataset(std::filesystem::path);
+    static Dataset load_dataset(std::filesystem::path, std::optional<size_t> = std::nullopt);
 };

@@ -5,23 +5,23 @@ int main()
 {
     const std::filesystem::path csv = write_temp_file(
         "lab1_feature_type.csv",
-        "small_num,text,wide_num\n"
-        "1,a,10.5\n"
-        "2,b,20.5\n"
-        "3,a,30.5\n"
-        "4,b,40.5\n"
-        "5,a,50.5\n"
-        "6,b,60.5\n"
-        "7,a,70.5\n"
-        "1,b,80.5\n"
-        "2,a,90.5\n"
-        "3,b,100.5\n");
+        "small_num,text,wide_num,target\n"
+        "1,a,10.5,40\n"
+        "2,b,20.5,50\n"
+        "3,a,30.5,60\n"
+        "4,b,40.5,40\n"
+        "5,a,50.5,10\n"
+        "6,b,60.5,20\n"
+        "7,a,70.5,30\n"
+        "1,b,80.5,30\n"
+        "2,a,90.5,10\n"
+        "3,b,100.5,100\n");
 
     Dataset ds = Dataset::load_dataset(csv);
     DatasetInfo info = ds.analyse();
 
     CHECK(info.total_count == 10);
-    CHECK(info.column_names.size() == 3);
+    CHECK(info.column_names.size() == 4);
 
     const FeatureInfo &small_num = info.feature_info.at("small_num");
     const FeatureInfo &text = info.feature_info.at("text");

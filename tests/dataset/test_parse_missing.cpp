@@ -5,23 +5,23 @@ int main()
 {
     const std::filesystem::path csv = write_temp_file(
         "lab1_parse_missing.csv",
-        "num,cat\n"
-        "1,alpha\n"
-        "2,beta\n"
-        "3,gamma\n"
-        "4,\n"
-        "5,beta\n"
-        "6,gamma\n"
-        "7,alpha\n"
-        "8,beta\n"
-        "9,gamma\n"
-        ",beta\n");
+        "num,cat,target\n"
+        "1,alpha,10\n"
+        "2,beta,\n"
+        "3,gamma,\n"
+        "4,,\n"
+        "5,beta,\n"
+        "6,gamma,\n"
+        "7,alpha,\n"
+        "8,beta,\n"
+        "9,gamma,\n"
+        ",beta,\n");
 
     Dataset ds = Dataset::load_dataset(csv);
     DatasetInfo info = ds.analyse();
 
     CHECK(info.total_count == 10);
-    CHECK(info.column_names.size() == 2);
+    CHECK(info.column_names.size() == 3);
 
     const FeatureInfo &num = info.feature_info.at("num");
     const FeatureInfo &cat = info.feature_info.at("cat");

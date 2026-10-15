@@ -3,31 +3,31 @@
 
 namespace
 {
-constexpr int kRows = 10;
-constexpr double kMin = 1.5;
-constexpr double kMax = 10.5;
+    constexpr int kRows = 10;
+    constexpr double kMin = 1.5;
+    constexpr double kMax = 10.5;
 
-double scaled(int i)
-{
-    return (kMin + i - kMin) / (kMax - kMin);
-}
+    double scaled(int i)
+    {
+        return (kMin + i - kMin) / (kMax - kMin);
+    }
 } // namespace
 
 int main()
 {
     const std::filesystem::path csv = write_temp_file(
         "lab1_encoding.csv",
-        "val,grp\n"
-        "1.5,red\n"
-        "2.5,blue\n"
-        "3.5,red\n"
-        "4.5,green\n"
-        "5.5,blue\n"
-        "6.5,red\n"
-        "7.5,green\n"
-        "8.5,red\n"
-        "9.5,blue\n"
-        "10.5,green\n");
+        "val,grp,target\n"
+        "1.5,red,10\n"
+        "2.5,blue,10\n"
+        "3.5,red,10\n"
+        "4.5,green,10\n"
+        "5.5,blue,10\n"
+        "6.5,red,10\n"
+        "7.5,green,10\n"
+        "8.5,red,10\n"
+        "9.5,blue,10\n"
+        "10.5,green,10\n");
 
     Dataset ds = Dataset::load_dataset(csv);
     DatasetInfo info = ds.analyse();
