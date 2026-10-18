@@ -6,12 +6,12 @@
 #include <iostream>
 #include <algorithm>
 
-double UniformWeight::weight(size_t, double, std::span<const double>) const
+double UniformWeight::weight(double) const
 {
     return m_weight;
 };
 
-double InverseDistanceWeight::weight(size_t, double dist, std::span<const double>) const
+double InverseDistanceWeight::weight(double dist) const
 {
     return 1. / (1e-9 + dist);
 };
@@ -64,7 +64,7 @@ std::vector<double> KnnClassifier::predict(const Matrix &features) const
         for (auto [elem_index, elem_dist] : nearest)
         {
             double elem_ans = m_target[elem_index];
-            frequencies[elem_ans] += m_weight_strategy->weight(elem_index, elem_dist, features[elem_index]);
+            frequencies[elem_ans] += m_weight_strategy->weight(elem_dist);
 
             if (frequencies[elem_ans] > frequencies[prediction])
                 prediction = elem_ans;
@@ -88,7 +88,7 @@ std::vector<double> KnnRegressor::predict(const Matrix &features) const
 
         for (auto [elem_index, elem_dist] : nearest)
         {
-            double weight = m_weight_strategy->weight(elem_index, elem_dist, features[elem_index]);
+            double weight = m_weight_strategy->weight(elem_dist);
             double elem_ans = weight * m_target[elem_index];
 
             weighted_sum += elem_ans;

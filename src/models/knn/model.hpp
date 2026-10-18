@@ -10,7 +10,7 @@ class IKnnWeight
 {
 public:
     virtual ~IKnnWeight() = default;
-    virtual double weight(size_t i, double dist, std::span<const double> x) const = 0;
+    virtual double weight(double) const = 0;
 };
 
 class UniformWeight : public IKnnWeight
@@ -21,13 +21,13 @@ private:
 public:
     UniformWeight(double w) : m_weight{w} {};
 
-    double weight(size_t i, double dist, std::span<const double> x) const override;
+    double weight(double) const override;
 };
 
 class InverseDistanceWeight : public IKnnWeight
 {
 public:
-    double weight(size_t i, double dist, std::span<const double> x) const override;
+    double weight(double) const override;
 };
 
 class KnnModel : public IModel

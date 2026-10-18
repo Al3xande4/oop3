@@ -4,11 +4,14 @@ set(LAB1_TESTS
     test_quantiles
     test_encoding
     test_inconsistent_csv
+    test_binary_io
+    test_split
+    test_target_column
 )
 
 foreach(test_name IN LISTS LAB1_TESTS)
     add_executable(${test_name} ${test_name}.cpp)
-    target_link_libraries(${test_name} PRIVATE dataset)
+    target_link_libraries(${test_name} PRIVATE dataset test_support)
     target_compile_features(${test_name} PRIVATE cxx_std_20)
     add_test(NAME ${test_name} COMMAND ${test_name})
 endforeach()
