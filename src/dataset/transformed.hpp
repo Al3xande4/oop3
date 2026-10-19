@@ -17,5 +17,5 @@ struct TransformedDataset
     void save(const std::filesystem::path &) const;
     static TransformedDataset load(const std::filesystem::path &);
 
-    std::pair<TransformedDataset, TransformedDataset> split(double);
+    std::pair<TransformedDataset, TransformedDataset> split(double) const;
 };

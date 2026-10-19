@@ -22,11 +22,25 @@ private:
 
 public:
     Matrix(size_t m = 0, size_t n = 0, Layout layout = Layout::RowMajor) : m_data(m * n, 0.), m_rows{m}, m_cols{n}, m_layout{layout} {};
+    Matrix(const Matrix &other, std::span<const size_t> row_indexes) : m_rows{row_indexes.size()}, m_cols{other.get_cols()}, m_layout{other.m_layout}
+    {
+        m_data.resize(m_rows * m_cols);
 
-    size_t get_rows() const { return m_rows; };
-    size_t get_cols() const { return m_cols; };
+        for (size_t i = 0; i < row_indexes.size(); i++)
+            for (size_t col = 0; col < m_cols; col++)
+                this->operator[]({i, col}) = other[{row_indexes[i], col}];
+    };
 
-    double &operator[](std::pair<int, int> coords)
+    size_t get_rows() const
+    {
+        return m_rows;
+    };
+    size_t get_cols() const
+    {
+        return m_cols;
+    };
+
+    double &operator[](std::pair<size_t, size_t> coords)
     {
         auto [i, j] = coords;
 
@@ -48,11 +62,17 @@ public:
 
     std::span<double> operator[](size_t idx)
     {
+        if (m_layout == Layout::ColumnMajor)
+            throw std::invalid_argument("Matrix: operator[] doesn't work with column major");
+
         return std::span<double>(m_data.data() + idx * m_cols, m_cols);
     }
 
     std::span<const double> operator[](size_t idx) const
     {
+        if (m_layout == Layout::ColumnMajor)
+            throw std::invalid_argument("Matrix: operator[] doesn't work with column major");
+
         return std::span<const double>(m_data.data() + idx * m_cols, m_cols);
     }
 
@@ -60,6 +80,10 @@ public:
     {
         if (idx >= m_rows)
             throw std::invalid_argument("Matrix: Index out of range");
+
+        if (m_layout == Layout::ColumnMajor)
+            throw std::invalid_argument("Matrix: operator[] doesn't work with column major");
+
         return std::span<double>(m_data.data() + idx * m_cols, m_cols);
     }
 

@@ -74,38 +74,30 @@ TransformedDataset TransformedDataset::load(const std::filesystem::path &path)
     return ds;
 }
 
-std::pair<TransformedDataset, TransformedDataset> TransformedDataset::split(double s)
+std::pair<TransformedDataset, TransformedDataset> TransformedDataset::split(double s) const
 {
     if (s < 0. || s > 1.)
         throw std::invalid_argument("Split argument must be in range [0, 1]");
 
-    size_t n = target_values.size() * s;
+    std::vector<size_t> indexes(target_values.size());
+    for (size_t i = 0; i < indexes.size(); i++)
+        indexes[i] = i;
 
     TransformedDataset train;
     train.feature_names = feature_names;
     train.target_name = target_name;
 
-    train.matrix = Matrix(n, matrix.get_cols());
-    for (size_t i = 0; i < n; i++)
-        for (size_t j = 0; j < matrix.get_cols(); j++)
-            train.matrix[i][j] = matrix[i][j];
-
-    train.target_values = target_values;
-    train.target_values.resize(n);
-
-    size_t k = target_values.size() - n;
+    size_t n = target_values.size() * s;
+    train.matrix = Matrix(matrix, std::span<const size_t>(indexes.begin(), n));
+    train.target_values.assign(target_values.begin(), target_values.begin() + n);
 
     TransformedDataset test;
     test.feature_names = feature_names;
     test.target_name = target_name;
 
-    test.matrix = Matrix(k, matrix.get_cols());
-    for (size_t i = 0; i < k; i++)
-        for (size_t j = 0; j < matrix.get_cols(); j++)
-            test.matrix[i][j] = matrix[i + n][j];
+    size_t k = target_values.size() - n;
+    test.matrix = Matrix(matrix, std::span<const size_t>(indexes.begin() + n, k));
+    test.target_values.assign(target_values.begin() + n, target_values.end());
 
-    for (size_t i = n; i < target_values.size(); i++)
-        test.target_values.push_back(target_values[i]);
-
-    return std::make_pair(train, test);
+    return std::make_pair(std::move(train), std::move(test));
 }
