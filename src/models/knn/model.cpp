@@ -1,4 +1,5 @@
 #include "models/knn/model.hpp"
+#include "models/api/errors.hpp"
 
 #include <functional>
 #include <map>
@@ -15,6 +16,22 @@ double InverseDistanceWeight::weight(double dist) const
 {
     return 1. / (1e-9 + dist);
 };
+
+void KnnModel::fit(
+    const Matrix &features,
+    std::span<const double> target)
+{
+    if (features.get_rows() != target.size())
+        throw DimensionMismatch("KnnModel.fit: features and targets mismatch: " + std::to_string(features.get_rows()) + ", " + std::to_string(target.size()));
+
+    if (features.get_rows() == 0)
+        throw EmptyData("KnnModel.fit: empty data");
+
+    m_data = features;
+    m_target.assign(target.begin(), target.end());
+
+    m_fitted = true;
+}
 
 std::vector<KnnModel::Neighbor> KnnModel::find_k_nearest(std::span<const double> object) const
 {
@@ -54,7 +71,15 @@ std::vector<KnnModel::Neighbor> KnnModel::find_k_nearest(std::span<const double>
 
 std::vector<double> KnnClassifier::predict(const Matrix &features) const
 {
+    if (!m_fitted)
+        throw NotFitted("KnnClassifier.predict called before fit");
+
+    if (features.get_cols() != m_data.get_cols())
+        throw DimensionMismatch("KnnClassifier.predict features sizes doesn't match fit features size. Predict features size - " + std::to_string(features.get_cols()) + ", training feature size - " + std::to_string(m_data.get_cols()));
+
     std::vector<double> predictions;
+    predictions.reserve(features.get_rows());
+
     for (size_t i = 0; i < features.get_rows(); i++)
     {
         auto nearest = find_k_nearest(features[i]);
@@ -78,7 +103,15 @@ std::vector<double> KnnClassifier::predict(const Matrix &features) const
 
 std::vector<double> KnnRegressor::predict(const Matrix &features) const
 {
+    if (!m_fitted)
+        throw NotFitted("KnnRegressor.predict called before fit");
+
+    if (features.get_cols() != m_data.get_cols())
+        throw DimensionMismatch("KnnRegressor.predict features sizes doesn't match fit features size. Predict features size - " + std::to_string(features.get_cols()) + ", training feature size - " + std::to_string(m_data.get_cols()));
+
     std::vector<double> predictions;
+    predictions.reserve(features.get_rows());
+
     for (size_t i = 0; i < features.get_rows(); i++)
     {
         auto nearest = find_k_nearest(features[i]);

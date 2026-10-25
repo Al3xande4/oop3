@@ -5,5 +5,6 @@ target_link_libraries(models_api INTERFACE dataset)
 add_library(core
     common/distance.cpp
     knn/model.cpp
+    decision_trees/stump.cpp
 )
 target_link_libraries(core PUBLIC models_api)

@@ -5,6 +5,7 @@
 
 #include "models/api/model.hpp"
 #include "models/api/distance.hpp"
+#include "models/api/errors.hpp"
 
 class IKnnWeight
 {
@@ -19,7 +20,7 @@ private:
     double m_weight;
 
 public:
-    UniformWeight(double w) : m_weight{w} {};
+    UniformWeight(double w = 1.) : m_weight{w} {};
 
     double weight(double) const override;
 };
@@ -41,19 +42,18 @@ protected:
     std::shared_ptr<IDistance> m_distance;
     std::shared_ptr<IKnnWeight> m_weight_strategy;
 
+    bool m_fitted;
+
 public:
-    KnnModel(size_t k, std::shared_ptr<IDistance> distance, std::shared_ptr<IKnnWeight> weight_strategy) : m_k{k}, m_distance{distance}, m_weight_strategy{weight_strategy} {};
+    KnnModel(size_t k, std::shared_ptr<IDistance> distance, std::shared_ptr<IKnnWeight> weight_strategy) : m_k{k}, m_distance{distance}, m_weight_strategy{weight_strategy}, m_fitted{false}
+    {
+        if (k == 0)
+            throw HyperParameterError("KnnModel: k must be greater than 0");
+    };
 
     void fit(
         const Matrix &features,
-        std::span<const double> target) override
-    {
-        if (features.get_rows() != target.size())
-            throw std::invalid_argument("Bad sizes");
-
-        m_data = features;
-        m_target.assign(target.begin(), target.end());
-    }
+        std::span<const double> target) override;
 
 protected:
     struct Neighbor

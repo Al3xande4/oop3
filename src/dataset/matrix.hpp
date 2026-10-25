@@ -79,12 +79,23 @@ public:
     std::span<double> at(size_t idx)
     {
         if (idx >= m_rows)
-            throw std::invalid_argument("Matrix: Index out of range");
+            throw std::out_of_range("Matrix.at: Index out of range");
 
         if (m_layout == Layout::ColumnMajor)
             throw std::invalid_argument("Matrix: operator[] doesn't work with column major");
 
         return std::span<double>(m_data.data() + idx * m_cols, m_cols);
+    }
+
+    std::span<const double> at(size_t idx) const
+    {
+        if (idx >= m_rows)
+            throw std::out_of_range("Matrix: Index out of range");
+
+        if (m_layout == Layout::ColumnMajor)
+            throw std::invalid_argument("Matrix: operator[] doesn't work with column major");
+
+        return std::span<const double>(m_data.data() + idx * m_cols, m_cols);
     }
 
     friend struct TransformedDataset;

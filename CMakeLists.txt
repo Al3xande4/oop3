@@ -10,7 +10,7 @@ add_compile_options(-Wall -Wextra)
 # Санитайзеры только в Debug: покрывают ошибки памяти и неопределённое поведение.
 # Переопределяется через -DSANITIZE=OFF, если инструменты недоступны.
 option(SANITIZE "Enable AddressSanitizer and UndefinedBehaviorSanitizer (Debug)" ON)
-if(SANITIZE AND CMAKE_BUILD_TYPE STREQUAL "Debug")
+if(SANITIZE)
     add_compile_options(-fsanitize=address,undefined -fno-omit-frame-pointer)
     add_link_options(-fsanitize=address,undefined)
 endif()

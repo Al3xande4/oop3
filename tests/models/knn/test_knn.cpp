@@ -37,22 +37,18 @@ int main()
     auto uniform = std::make_shared<UniformWeight>(1.0);
     auto inverse = std::make_shared<InverseDistanceWeight>();
 
-    // Arrange: one-dimensional regression fixture
     Matrix train = make_column({0., 100.});
     std::vector<double> targets = {10., 20.};
 
-    // fit rejects mismatched feature/target counts
     KnnRegressor bad_fit(1, euclid, inverse);
     CHECK_THROWS(bad_fit.fit(make_column({1., 2., 3.}), std::vector<double>{1., 2.}););
 
-    // Act + Assert: k = 1 regressor copies its single neighbour's target
     KnnRegressor one_nn(1, euclid, inverse);
     one_nn.fit(train, targets);
     std::vector<double> pred_one = one_nn.predict(make_column({1.}));
     CHECK(pred_one.size() == 1);
     CHECK_NEAR(pred_one[0], 10., 1e-9);
 
-    // k = all + uniform weight degenerates to the arithmetic mean
     Matrix train4 = make_column({1., 2., 3., 4.});
     std::vector<double> targets4 = {10., 20., 30., 60.};
     KnnRegressor mean_model(4, euclid, uniform);
@@ -61,29 +57,24 @@ int main()
     CHECK(pred_mean.size() == 1);
     CHECK_NEAR(pred_mean[0], 30., 1e-12);
 
-    // k larger than the training set still predicts using every row
     KnnRegressor big_k(10, euclid, uniform);
     big_k.fit(train4, targets4);
     std::vector<double> pred_big = big_k.predict(make_column({0.}));
     CHECK(pred_big.size() == 1);
     CHECK_NEAR(pred_big[0], 30., 1e-12);
 
-    // Classifier, k = 1: answer is the neighbour's label
     KnnClassifier label_model(1, euclid, uniform);
     label_model.fit(train, std::vector<double>{1., 0.});
     std::vector<double> labels_one = label_model.predict(make_column({1.}));
     CHECK(labels_one.size() == 1);
     CHECK_NEAR(labels_one[0], 1., 1e-12);
 
-    // Classifier, k = 3: weighted majority, three neighbours of label 1
-    // beat the single far-away neighbour of label 0
     KnnClassifier majority(3, euclid, inverse);
     majority.fit(make_column({0., 1., 2., 10.}), std::vector<double>{1., 1., 0., 0.});
     std::vector<double> labels3 = majority.predict(make_column({0.5}));
     CHECK(labels3.size() == 1);
     CHECK_NEAR(labels3[0], 1., 1e-12);
 
-    // Spy double: one distance evaluation per (query row x train row)
     auto spy = std::make_shared<SpyDistance>(std::make_shared<EuclidDistance>());
     KnnRegressor spy_model(2, spy, uniform);
     spy_model.fit(train4, targets4);

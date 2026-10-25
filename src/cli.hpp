@@ -5,14 +5,6 @@
 #include <optional>
 #include <string>
 
-struct KnnOptions
-{
-    bool help = false;
-    std::optional<std::filesystem::path> dataset;
-
-    std::string help_text;
-};
-
 struct LoadOptions
 {
     bool help = false;
@@ -28,5 +20,26 @@ struct LoadOptions
     std::string help_text;
 };
 
+struct KnnOptions
+{
+    std::optional<std::filesystem::path> dataset;
+    std::optional<size_t> k;
+    std::string distance = "euclid";
+    std::string weight = "uniform";
+
+    bool help = false;
+    std::string help_text;
+};
+
+struct StumpOptions
+{
+    std::optional<std::filesystem::path> dataset;
+    std::optional<size_t> min_samples_leaf;
+
+    bool help = false;
+    std::string help_text;
+};
+
 KnnOptions parse_knn_cli(int argc, char *argv[]);
 LoadOptions parse_load_cli(int argc, char *argv[]);
+StumpOptions parse_stump_cli(int argc, char *argv[]);

@@ -1,2 +1,3 @@
 add_subdirectory(common)
 add_subdirectory(knn)
+add_subdirectory(decision_trees)

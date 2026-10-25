@@ -1,4 +1,5 @@
 #include "models/api/distance.hpp"
+#include "models/api/errors.hpp"
 
 #include <ranges>
 #include <algorithm>
@@ -9,7 +10,7 @@ double EuclidDistance::compute(
     std::span<const double> b) const
 {
     if (a.size() != b.size())
-        throw std::runtime_error("Euclid distance: sizes don't match");
+        throw DimensionMismatch("Euclid distance: vectors sizes are not equal. First - " + std::to_string(a.size()) + ", second - " + std::to_string(b.size()) + ".");
 
     double res = 0.;
     for (size_t i = 0; i < a.size(); i++)
@@ -23,7 +24,7 @@ double ManhattenDistance::compute(
     std::span<const double> b) const
 {
     if (a.size() != b.size())
-        throw std::runtime_error("Manhatten distance: sizes don't match");
+        throw DimensionMismatch("ManhattenDistance: vectors sizes are not equal. First - " + std::to_string(a.size()) + ", second - " + std::to_string(b.size()) + ".");
 
     double res = 0.;
     for (size_t i = 0; i < a.size(); i++)
@@ -37,7 +38,7 @@ double ChebyshevDistance::compute(
     std::span<const double> b) const
 {
     if (a.size() != b.size())
-        throw std::runtime_error("Chebyshev distance: sizes don't match");
+        throw DimensionMismatch("Chebyshev distance: vectors sizes are not equal. First - " + std::to_string(a.size()) + ", second - " + std::to_string(b.size()) + ".");
 
     double res = 0.;
     for (size_t i = 0; i < a.size(); i++)
