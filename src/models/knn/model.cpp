@@ -27,6 +27,9 @@ void KnnModel::fit(
     if (features.get_rows() == 0)
         throw EmptyData("KnnModel.fit: empty data");
 
+    if (m_k > features.get_rows())
+        throw std::invalid_argument("KnnModel.fit: k is bigger than training data");
+
     m_data = features;
     m_target.assign(target.begin(), target.end());
 

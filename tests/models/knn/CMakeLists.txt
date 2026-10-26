@@ -1,6 +1,7 @@
 set(KNN_TESTS
     test_weights
     test_knn
+    test_exceptions
 )
 
 foreach(test_name IN LISTS KNN_TESTS)

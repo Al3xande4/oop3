@@ -57,12 +57,6 @@ int main()
     CHECK(pred_mean.size() == 1);
     CHECK_NEAR(pred_mean[0], 30., 1e-12);
 
-    KnnRegressor big_k(10, euclid, uniform);
-    big_k.fit(train4, targets4);
-    std::vector<double> pred_big = big_k.predict(make_column({0.}));
-    CHECK(pred_big.size() == 1);
-    CHECK_NEAR(pred_big[0], 30., 1e-12);
-
     KnnClassifier label_model(1, euclid, uniform);
     label_model.fit(train, std::vector<double>{1., 0.});
     std::vector<double> labels_one = label_model.predict(make_column({1.}));
