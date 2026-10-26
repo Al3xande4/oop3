@@ -4,4 +4,6 @@ build
 build/**
 output
 output/**
+docs/html
+docs/html/**
 .vscode

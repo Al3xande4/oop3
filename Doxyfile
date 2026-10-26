@@ -1,0 +1,34 @@
+# Doxyfile — генерация документации по интерфейсу ядра (лаб. работа 2)
+# Запуск: doxygen Doxyfile  →  docs/html/index.html
+
+PROJECT_NAME           = "sem3-oop"
+PROJECT_BRIEF          = "Загрузка, анализ и предобработка табличных данных; решающий пень"
+OUTPUT_DIRECTORY       = docs
+INPUT                  = src/models/api \
+                         src/models/decision_trees \
+                         src/dataset/matrix.hpp \
+                         src/dataset/transformed.hpp
+FILE_PATTERNS          = *.hpp
+RECURSIVE              = NO
+
+EXTRACT_ALL            = NO
+EXTRACT_PRIVATE        = NO
+EXTRACT_STATIC         = NO
+HIDE_UNDOC_MEMBERS     = YES
+HIDE_UNDOC_CLASSES     = YES
+
+JAVADOC_AUTOBRIEF      = YES
+QT_AUTOBRIEF           = YES
+MARKDOWN_SUPPORT       = YES
+
+GENERATE_HTML          = YES
+HTML_OUTPUT            = html
+GENERATE_LATEX         = NO
+GENERATE_XML           = NO
+
+# Диаграммы требуют Graphviz (dot); в системе не установлен — выключены.
+HAVE_DOT               = NO
+
+QUIET                  = YES
+WARN_IF_UNDOCUMENTED   = YES
+WARN_IF_DOC_ERROR      = YES
