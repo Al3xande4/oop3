@@ -14,7 +14,7 @@ double EuclidDistance::compute(
 
     double res = 0.;
     for (size_t i = 0; i < a.size(); i++)
-        res += std::pow(a[i] - b[i], 2);
+        res += (a[i] - b[i]) * (a[i] - b[i]);
 
     return std::sqrt(res);
 }

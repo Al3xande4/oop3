@@ -1,8 +1,11 @@
 #include "feature_info.hpp"
+#include "config.hpp"
 
+#include <algorithm>
+#include <cmath>
 #include <ranges>
 #include <stdexcept>
-#include "config.hpp"
+#include <set>
 
 double mean(std::span<const double> values)
 {
@@ -24,7 +27,7 @@ double variance(std::span<const double> values)
     double m = mean(values);
     double s = 0;
     for (const auto &v : values)
-        s += std::pow(v - m, 2);
+        s += (v - m) * (v - m);
 
     s /= values.size();
     return std::sqrt(s);

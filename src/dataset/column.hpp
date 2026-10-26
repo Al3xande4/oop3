@@ -1,6 +1,9 @@
 #pragma once
 
-#include <bits/stdc++.h>
+#include <vector>
+#include <optional>
+#include <variant>
+#include <string>
 
 struct NumericColumn
 {

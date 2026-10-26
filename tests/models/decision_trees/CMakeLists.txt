@@ -1,5 +1,8 @@
 set(DECISION_TREES_TESTS
     test_stump_edge
+    test_stump_exceptions
+    test_stump_naive
+    test_stump_basic
 )
 
 foreach(test_name IN LISTS DECISION_TREES_TESTS)

@@ -69,7 +69,7 @@ void GiniCriteria::init()
 void GiniCriteria::update(double target)
 {
     m_left += 2 * (m_category_count[target] - m_category_count_right[target]) + 1;
-    m_right += 1 - 2 * m_category_count_right[target];
+    m_right += 1 - 2 * (double)m_category_count_right[target];
 
     m_category_count_right[target]--;
 
@@ -95,6 +95,9 @@ void IDecisionStump::fit(
     if (targets.size() == 0)
         throw EmptyData("DecisionStump.fit: targets size is 0");
 
+    m_threshold = std::nullopt;
+    m_feature_index = std::nullopt;
+
     m_criteria->calculate_total(targets);
 
     size_t best = 0;
@@ -113,7 +116,7 @@ void IDecisionStump::fit(
         m_criteria->init();
         size_t count_left = 0, count_right = features.get_rows();
 
-        for (size_t p = 0; p < features.get_rows() - 1; p++)
+        for (size_t p = 0; p + 1 < features.get_rows(); p++)
         {
             size_t row = order[p];
 
@@ -131,12 +134,13 @@ void IDecisionStump::fit(
                 continue;
 
             double score = m_criteria->score();
-            chosen = true;
+            double t = std::midpoint(features[row][col], features[order[p + 1]][col]);
 
             if (score > best_score)
             {
                 best = col;
-                threshold = std::midpoint(features[row][col], features[order[p + 1]][col]);
+                chosen = true;
+                threshold = t;
                 best_score = score;
             }
         }

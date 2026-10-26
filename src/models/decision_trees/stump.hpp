@@ -63,7 +63,7 @@ public:
     IDecisionStump(std::unique_ptr<ISearchCriteria> criteria, size_t min_samples_leaf) : m_feature_index{std::nullopt}, m_threshold{std::nullopt}, m_criteria(std::move(criteria)), m_min_samples_leaf{min_samples_leaf}, m_fitted{false}, m_fit_feature_size{0}
     {
         if (min_samples_leaf < 1)
-            throw std::invalid_argument("Min samples must be at least 1");
+            throw HyperParameterError("DecisionStump: min samples leaf must be greater than 0");
     };
 
     virtual void fit(
@@ -93,7 +93,7 @@ public:
 
 class DecisionStumpRegressor : public IDecisionStump
 {
-private:
+protected:
     double m_left_mean;
     double m_right_mean;
     double m_constant;
@@ -110,23 +110,29 @@ public:
 
     double get_left_leaf() const override
     {
+        if (!m_fitted)
+            throw NotFitted("DesionStumpRegressor: get_left_leaf before fit");
+
         return m_left_mean;
     }
     double get_right_leaf() const override
     {
+        if (!m_fitted)
+            throw NotFitted("DesionStumpRegressor: get_right_leaf before fit");
+
         return m_right_mean;
     }
 };
 
 class DecisionStumpClassifier : public IDecisionStump
 {
-private:
+protected:
     double m_left_most_common;
     double m_right_most_common;
     double m_constant;
 
 public:
-    DecisionStumpClassifier(size_t min_samples_leaf) : IDecisionStump(std::make_unique<GiniCriteria>(), min_samples_leaf) {};
+    DecisionStumpClassifier(size_t min_samples_leaf) : IDecisionStump(std::make_unique<GiniCriteria>(), min_samples_leaf), m_left_most_common{0.}, m_right_most_common{0.}, m_constant{0.} {};
 
     void fit(
         const Matrix &features,
@@ -137,10 +143,16 @@ public:
 
     double get_left_leaf() const override
     {
+        if (!m_fitted)
+            throw NotFitted("DesionStumpClassifier: get_left_leaf before fit");
+
         return m_left_most_common;
     }
     double get_right_leaf() const override
     {
+        if (!m_fitted)
+            throw NotFitted("DesionStumpClassifier: get_right_leaf before fit");
+
         return m_right_most_common;
     }
 };

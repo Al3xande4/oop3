@@ -1,5 +1,6 @@
 set(COMMON_TESTS
     test_distances
+    test_matrix
 )
 
 foreach(test_name IN LISTS COMMON_TESTS)

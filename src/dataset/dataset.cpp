@@ -2,6 +2,12 @@
 #include "config.hpp"
 #include "helpers.hpp"
 
+#include <set>
+#include <string>
+#include <algorithm>
+#include <charconv>
+#include <fstream>
+
 std::vector<std::string> parse_header(std::string_view header)
 {
     std::vector<std::string> result;
@@ -55,7 +61,7 @@ Dataset Dataset::load_dataset(std::filesystem::path path, std::optional<size_t> 
 {
     Dataset dataset;
 
-    std::ifstream file{path};
+    std::ifstream file(path);
     if (!file.is_open())
         throw std::runtime_error{"Cannot find a file: " + std::string(path)};
 

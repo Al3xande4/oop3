@@ -3,7 +3,7 @@
 #include <ranges>
 #include <string>
 
-std::string trim(std::string_view s)
+inline std::string trim(std::string_view s)
 {
     auto start = s.find_first_not_of(" \t\r\n");
     auto end = s.find_last_not_of(" \t\r\n");

@@ -47,6 +47,21 @@ inline int g_failures = 0;
         CHECK(threw);       \
     } while (0)
 
+#define CHECK_THROWS_AS(code, Type) \
+    do                              \
+    {                               \
+        bool threw = false;         \
+        try                         \
+        {                           \
+            code;                   \
+        }                           \
+        catch (Type &)              \
+        {                           \
+            threw = true;           \
+        }                           \
+        CHECK(threw);               \
+    } while (0)
+
 inline std::filesystem::path
 write_temp_file(std::string_view name, std::string_view content)
 {

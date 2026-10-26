@@ -50,7 +50,7 @@ public:
         return m_data[j * m_rows + i];
     }
 
-    const double &operator[](std::pair<int, int> coords) const
+    const double &operator[](std::pair<size_t, size_t> coords) const
     {
         auto [i, j] = coords;
 

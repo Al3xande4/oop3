@@ -38,8 +38,7 @@ std::vector<KnnModel::Neighbor> KnnModel::find_k_nearest(std::span<const double>
     auto comparator = [](const Neighbor &a, const Neighbor &b)
     { return a.distance < b.distance; };
 
-    std::priority_queue<Neighbor, std::vector<Neighbor>, std::function<bool(const Neighbor &, const Neighbor &)>>
-        nearest(comparator);
+    std::priority_queue<Neighbor, std::vector<Neighbor>, decltype(comparator)> nearest(comparator);
 
     for (size_t i = 0; i < m_data.get_rows(); i++)
     {
