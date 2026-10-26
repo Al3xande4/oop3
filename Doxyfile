@@ -5,9 +5,7 @@ PROJECT_NAME           = "sem3-oop"
 PROJECT_BRIEF          = "Загрузка, анализ и предобработка табличных данных; решающий пень"
 OUTPUT_DIRECTORY       = docs
 INPUT                  = src/models/api \
-                         src/models/decision_trees \
-                         src/dataset/matrix.hpp \
-                         src/dataset/transformed.hpp
+                         src/models/decision_trees
 FILE_PATTERNS          = *.hpp
 RECURSIVE              = NO
 
