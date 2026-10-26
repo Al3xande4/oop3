@@ -27,6 +27,13 @@ namespace
             ++calls;
             return real->compute(a, b);
         }
+        virtual double compute(
+            const MatrixSlice<const double> &a,
+            const MatrixSlice<const double> &b) const override
+        {
+            ++calls;
+            return real->compute(a, b);
+        }
     };
 
 } // namespace

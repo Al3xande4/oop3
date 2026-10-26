@@ -57,12 +57,12 @@ int main()
     for (int i = 0; i < kRows; i++)
     {
         const double expected_val = scaled(i);
-        CHECK_NEAR((onehot.matrix[{i, 0}]), expected_val, 1e-12);
+        CHECK_NEAR((onehot.matrix(i, 0)), expected_val, 1e-12);
 
         int hot = 0;
         for (int c = 0; c < 3; c++)
         {
-            const double v = onehot.matrix[{i, 1 + c}];
+            const double v = onehot.matrix(i, 1 + c);
             CHECK((v == 0.0) || (v == 1.0));
             if (v == 1.0)
             {
@@ -76,7 +76,7 @@ int main()
     TransformedDataset again = ds.transform(info, MinMaxScaling{}, CategoryEncoding::ONE_HOT, Layout::RowMajor);
     for (int i = 0; i < kRows; i++)
         for (int j = 0; j < 4; j++)
-            CHECK((again.matrix[{i, j}] == onehot.matrix[{i, j}]));
+            CHECK((again.matrix(i, j) == onehot.matrix(i, j)));
 
     TransformedDataset ordinal = ds.transform(info, MinMaxScaling{}, CategoryEncoding::ORDINAL, Layout::RowMajor);
 
@@ -87,8 +87,8 @@ int main()
     const int expected_code[10] = {2, 0, 2, 1, 0, 2, 1, 2, 0, 1};
     for (int i = 0; i < kRows; i++)
     {
-        CHECK_NEAR((ordinal.matrix[{i, 0}]), scaled(i), 1e-12);
-        CHECK_NEAR((ordinal.matrix[{i, 1}]), static_cast<double>(expected_code[i]), 1e-12);
+        CHECK_NEAR((ordinal.matrix(i, 0)), scaled(i), 1e-12);
+        CHECK_NEAR((ordinal.matrix(i, 1)), static_cast<double>(expected_code[i]), 1e-12);
     }
 
     std::filesystem::remove(csv);

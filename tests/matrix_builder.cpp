@@ -70,7 +70,7 @@ Matrix MatrixBuilder::build() const
 
     for (size_t row = 0; row < m_rows; row++)
         for (size_t col = 0; col < m_cols; col++)
-            matrix[std::make_pair(row, col)] = m_data[row][col];
+            matrix(row, col) = m_data[row][col];
 
     return matrix;
 }

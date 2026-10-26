@@ -268,7 +268,7 @@ TransformedDataset Dataset::transform(
             if (std::holds_alternative<NumericColumn>(column))
             {
                 auto value = std::get<NumericColumn>(column).values[i];
-                matrix[{i, j + offset}] = scaling.scale(*value, std::get<NumericFeatureInfo>(info.feature_info.at(name)));
+                matrix(i, j + offset) = scaling.scale(*value, std::get<NumericFeatureInfo>(info.feature_info.at(name)));
 
                 continue;
             }
@@ -279,7 +279,7 @@ TransformedDataset Dataset::transform(
             if (encoding == CategoryEncoding::ONE_HOT)
             {
                 for (size_t idx = 0; idx < categories.size(); idx++)
-                    matrix[{i, j + offset + idx}] = *category == categories[idx];
+                    matrix(i, j + offset + idx) = *category == categories[idx];
 
                 offset += categories.size() - 1;
 
@@ -289,7 +289,7 @@ TransformedDataset Dataset::transform(
             auto it = std::ranges::find(categories, *category);
             size_t index = it - categories.begin();
 
-            matrix[{i, j}] = index;
+            matrix(i, j) = index;
         }
     }
 

@@ -1,8 +1,11 @@
 #pragma once
 
+#include "matrix_slice.hpp"
+
 #include <vector>
 #include <span>
 #include <stdexcept>
+#include <optional>
 
 enum class Layout
 {
@@ -28,37 +31,29 @@ public:
 
         for (size_t i = 0; i < row_indexes.size(); i++)
             for (size_t col = 0; col < m_cols; col++)
-                this->operator[]({i, col}) = other[{row_indexes[i], col}];
+                (*this)(i, col) = other(row_indexes[i], col);
     };
 
-    size_t get_rows() const
-    {
-        return m_rows;
-    };
-    size_t get_cols() const
-    {
-        return m_cols;
-    };
+    size_t get_rows() const { return m_rows; };
+    size_t get_cols() const { return m_cols; };
 
-    double &operator[](std::pair<size_t, size_t> coords)
-    {
-        auto [i, j] = coords;
+    double &operator()(std::size_t row, std::size_t col) &;
+    const double &operator()(std::size_t row, std::size_t col) const &;
 
-        if (m_layout == Layout::RowMajor)
-            return m_data[i * m_cols + j];
+    double &operator()(std::size_t row, std::size_t col) && = delete;
+    const double &operator()(std::size_t row, std::size_t col) const && = delete;
 
-        return m_data[j * m_rows + i];
-    }
+    MatrixSlice<double> operator()(std::size_t row, std::nullopt_t) &;
+    MatrixSlice<const double> operator()(std::size_t row, std::nullopt_t) const &;
 
-    const double &operator[](std::pair<size_t, size_t> coords) const
-    {
-        auto [i, j] = coords;
+    MatrixSlice<double> operator()(std::size_t row, std::nullopt_t) && = delete;
+    MatrixSlice<const double> operator()(std::size_t row, std::nullopt_t) const && = delete;
 
-        if (m_layout == Layout::RowMajor)
-            return m_data[i * m_cols + j];
+    MatrixSlice<double> operator()(std::nullopt_t, std::size_t col) &;
+    MatrixSlice<const double> operator()(std::nullopt_t, std::size_t col) const &;
 
-        return m_data[j * m_rows + i];
-    }
+    MatrixSlice<double> operator()(std::nullopt_t, std::size_t col) && = delete;
+    MatrixSlice<const double> operator()(std::nullopt_t, std::size_t col) const && = delete;
 
     std::span<double> operator[](size_t idx)
     {
