@@ -45,3 +45,14 @@ public:
     virtual std::vector<double> predict(
         const Matrix &features) const = 0;
 };
+
+class IRegressor : public IModel
+{
+};
+
+class IClassifier : public IModel
+{
+public:
+    virtual Matrix predict_proba(const Matrix &) const = 0;
+    virtual std::span<const double> classes() const = 0;
+};

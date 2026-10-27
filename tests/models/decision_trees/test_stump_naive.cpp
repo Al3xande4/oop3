@@ -14,9 +14,10 @@ public:
     {
         m_fitted = true;
         m_fit_feature_size = features.get_cols();
-        m_constant = -43124;
+        m_constant = 0;
 
         double best = std::numeric_limits<double>::infinity();
+
         for (size_t col = 0; col < features.get_cols(); col++)
         {
             for (size_t row = 0; row < features.get_rows(); row++)
@@ -69,23 +70,21 @@ public:
                 if (sse < best)
                 {
                     best = sse;
-                    m_threshold = t;
-                    m_feature_index = col;
+                    m_split = {.feature = col, .threshold = t, .score = best};
                     m_left_mean = mean_left;
                     m_right_mean = mean_right;
                 }
                 else if (std::abs(sse - best) < 1e-9)
                 {
-                    if (col < m_feature_index)
+                    if (col < m_split.value().feature)
                     {
-                        m_feature_index = col;
-                        m_threshold = t;
+                        m_split = {.feature = col, .threshold = t, .score = best};
                         m_left_mean = mean_left;
                         m_right_mean = mean_right;
                     }
-                    else if (col == m_feature_index && t < m_threshold)
+                    else if (col == m_split.value().feature && t < m_split.value().threshold)
                     {
-                        m_threshold = t;
+                        m_split = {.feature = col, .threshold = t, .score = best};
                         m_left_mean = mean_left;
                         m_right_mean = mean_right;
                     }

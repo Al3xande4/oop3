@@ -8,84 +8,7 @@
 #include <unordered_map>
 #include <stdexcept>
 
-void VarianceCriteria::calculate_total(std::span<const double> targets)
-{
-    m_total_sum = 0.;
-    for (const auto &t : targets)
-        m_total_sum += t;
-
-    m_total_count = targets.size();
-}
-
-void VarianceCriteria::init()
-{
-    m_sum_left = 0.;
-    m_sum_right = m_total_sum;
-
-    m_count_left = 0;
-    m_count_right = m_total_count;
-}
-
-void VarianceCriteria::update(double target)
-{
-    m_sum_left += target;
-    m_sum_right -= target;
-
-    m_count_left++;
-    m_count_right--;
-}
-
-double VarianceCriteria::score() const
-{
-    auto G = [](double s, size_t m)
-    { return s * s / m; };
-
-    return G(m_sum_left, m_count_left) + G(m_sum_right, m_count_right);
-}
-
-void GiniCriteria::calculate_total(std::span<const double> targets)
-{
-    m_category_count.clear();
-
-    for (const auto &t : targets)
-        m_category_count[t]++;
-
-    m_total_count = targets.size();
-}
-
-void GiniCriteria::init()
-{
-    m_category_count_right = m_category_count;
-
-    m_left = 0.;
-    m_right = 0.;
-    for (auto &[_, freq] : m_category_count)
-        m_right += freq * freq;
-
-    m_count_left = 0;
-    m_count_right = m_total_count;
-}
-
-void GiniCriteria::update(double target)
-{
-    m_left += 2 * (m_category_count[target] - m_category_count_right[target]) + 1;
-    m_right += 1 - 2 * (double)m_category_count_right[target];
-
-    m_category_count_right[target]--;
-
-    m_count_left++;
-    m_count_right--;
-}
-
-double GiniCriteria::score() const
-{
-    auto H = [](double a, size_t m)
-    { return a / m; };
-
-    return H(m_left, m_count_left) + H(m_right, m_count_right);
-}
-
-void IDecisionStump::fit(
+void DecisionStumpRegressor::fit(
     const Matrix &features,
     std::span<const double> targets)
 {
@@ -95,74 +18,24 @@ void IDecisionStump::fit(
     if (targets.size() == 0)
         throw EmptyData("DecisionStump.fit: targets size is 0");
 
-    m_threshold = std::nullopt;
-    m_feature_index = std::nullopt;
-
-    m_criteria->calculate_total(targets);
-
-    size_t best = 0;
-    double threshold = 0;
-    double best_score = -std::numeric_limits<double>::infinity();
-    bool chosen = false;
-
-    std::vector<size_t> order(features.get_rows());
-    std::iota(order.begin(), order.end(), 0ULL);
-
-    for (size_t col = 0; col < features.get_cols(); col++)
-    {
-        std::ranges::sort(order, [&](size_t a, size_t b)
-                          { return features[a][col] < features[b][col]; });
-
-        m_criteria->init();
-        size_t count_left = 0, count_right = features.get_rows();
-
-        for (size_t p = 0; p + 1 < features.get_rows(); p++)
-        {
-            size_t row = order[p];
-
-            m_criteria->update(targets[row]);
-            count_left++;
-            count_right--;
-
-            if (features[row][col] == features[order[p + 1]][col])
-                continue;
-
-            if (count_right < m_min_samples_leaf)
-                break;
-
-            if (count_left < m_min_samples_leaf)
-                continue;
-
-            double score = m_criteria->score();
-            double t = std::midpoint(features[row][col], features[order[p + 1]][col]);
-
-            if (score > best_score)
-            {
-                best = col;
-                chosen = true;
-                threshold = t;
-                best_score = score;
-            }
-        }
-    }
-
     m_fitted = true;
     m_fit_feature_size = features.get_cols();
 
-    if (!chosen)
-        return;
+    std::vector<size_t> object_ids(features.get_rows());
+    std::iota(object_ids.begin(), object_ids.end(), 0ULL);
 
-    m_threshold = threshold;
-    m_feature_index = best;
-}
+    std::vector<size_t> feature_ids(features.get_cols());
+    std::iota(feature_ids.begin(), feature_ids.end(), 0ULL);
 
-void DecisionStumpRegressor::fit(
-    const Matrix &features,
-    std::span<const double> targets)
-{
-    IDecisionStump::fit(features, targets);
+    m_split = m_split_finder.find_best(
+        features,
+        targets,
+        object_ids,
+        feature_ids,
+        std::make_unique<VarianceCriteria>(),
+        m_min_samples_leaf);
 
-    if (!m_threshold)
+    if (!m_split)
     {
         double sum = 0.;
         for (const auto &t : targets)
@@ -179,7 +52,7 @@ void DecisionStumpRegressor::fit(
 
     for (size_t row = 0; row < features.get_rows(); row++)
     {
-        if (features[row][*m_feature_index] <= *m_threshold)
+        if (features[row][m_split.value().feature] <= m_split.value().threshold)
         {
             count_left++;
             sum_left += targets[row];
@@ -208,9 +81,9 @@ std::vector<double> DecisionStumpRegressor::predict(
 
     for (size_t row = 0; row < features.get_rows(); row++)
     {
-        if (!m_feature_index)
+        if (!m_split)
             result[row] = m_constant;
-        else if (features[row][*m_feature_index] <= *m_threshold)
+        else if (features[row][m_split.value().feature] <= m_split.value().threshold)
             result[row] = m_left_mean;
         else
             result[row] = m_right_mean;
@@ -223,9 +96,29 @@ void DecisionStumpClassifier::fit(
     const Matrix &features,
     std::span<const double> targets)
 {
-    IDecisionStump::fit(features, targets);
+    if (features.get_rows() != targets.size())
+        throw DimensionMismatch("DecisionStump.fit: features and targets mismatch sizes: features - " + std::to_string(features.get_rows()) + ", targets - " + std::to_string(targets.size()));
 
-    if (!m_threshold)
+    if (targets.size() == 0)
+        throw EmptyData("DecisionStump.fit: targets size is 0");
+
+    std::vector<size_t> object_ids(features.get_rows());
+    std::iota(object_ids.begin(), object_ids.end(), 0ULL);
+
+    std::vector<size_t> feature_ids(features.get_cols());
+    std::iota(feature_ids.begin(), feature_ids.end(), 0ULL);
+
+    m_split = m_split_finder.find_best(
+        features,
+        targets,
+        object_ids,
+        feature_ids,
+        std::make_unique<GiniCriteria>(),
+        m_min_samples_leaf);
+    m_fitted = true;
+    m_fit_feature_size = features.get_cols();
+
+    if (!m_split)
     {
         std::unordered_map<double, size_t> occ;
         size_t best = 0;
@@ -250,7 +143,7 @@ void DecisionStumpClassifier::fit(
 
     for (size_t row = 0; row < features.get_rows(); row++)
     {
-        if (features[row][*m_feature_index] <= *m_threshold)
+        if (features[row][m_split.value().feature] <= m_split.value().threshold)
         {
             left_count[targets[row]]++;
             if (left_count[targets[row]] > left_best)
@@ -284,9 +177,9 @@ std::vector<double> DecisionStumpClassifier::predict(
 
     for (size_t row = 0; row < features.get_rows(); row++)
     {
-        if (!m_feature_index)
+        if (!m_split)
             result[row] = m_constant;
-        else if (features[row][*m_feature_index] <= *m_threshold)
+        else if (features[row][m_split.value().feature] <= m_split.value().threshold)
             result[row] = m_left_most_common;
         else
             result[row] = m_right_most_common;

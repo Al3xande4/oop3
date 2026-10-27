@@ -6,5 +6,6 @@ add_library(core
     common/distance.cpp
     knn/model.cpp
     decision_trees/stump.cpp
+    decision_trees/split.cpp
 )
 target_link_libraries(core PUBLIC models_api)
