@@ -2,6 +2,7 @@
 
 #include <span>
 #include <vector>
+
 #include "dataset/matrix.hpp"
 
 /**
@@ -29,21 +30,19 @@ public:
      * @throw DimensionMismatch число строк @p features не равно размеру @p target
      * @throw EmptyData обучение на пустой выборке
      */
-    virtual void fit(
-        const Matrix &features,
-        std::span<const double> target) = 0;
+    virtual void fit(const Matrix &features, std::span<const double> target) = 0;
 
     /**
-     * @brief Возвращает предсказание для каждой строки матрицы.
+     * Возвращает предсказание для каждой строки матрицы.
      *
-     * @param features матрица признаков; число столбцов должно совпадать
-     *                 с числом столбцов обучающей матрицы
-     * @return вектор предсказаний длиной @c features.get_rows()
-     * @throw NotFitted @c predict вызван до @c fit
-     * @throw DimensionMismatch число столбцов не совпадает с обучающим
+     * @param features Матрица признаков. Число столбцов должно совпадать
+     *                 с числом столбцов обучающей выборки.
+     * @return Вектор предсказаний длиной `features.get_rows()`.
+     *
+     * @throw NotFitted Если метод вызван до вызова `fit`.
+     * @throw DimensionMismatch Если число столбцов матрицы не совпадает с обучающей.
      */
-    virtual std::vector<double> predict(
-        const Matrix &features) const = 0;
+    virtual std::vector<double> predict(const Matrix &features) const = 0;
 };
 
 class IRegressor : public IModel

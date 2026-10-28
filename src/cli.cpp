@@ -101,3 +101,33 @@ StumpOptions parse_stump_cli(int argc, char *argv[])
 
     return parsed;
 }
+
+CartOptions parse_cart_cli(int argc, char *argv[])
+{
+    CartOptions parsed;
+
+    cxxopts::Options options("stump", "Decision stump");
+
+    // clang-format off
+    options.add_options()
+        ("help,h", "Help")
+        ("bin,dataset,f", "Path to the dataset binary file", cxxopts::value<std::filesystem::path>())
+        ("min-samples-leaf", "Min samples leaf", cxxopts::value<size_t>()->default_value("1"))
+        ("max-depth", "Max depth", cxxopts::value<size_t>()->default_value("6"))
+        ("min-samples-split", "Min samples split", cxxopts::value<size_t>()->default_value("2"));
+    // clang-format on
+
+    auto result = options.parse(argc, argv);
+
+    parsed.help = result.count("help") > 0;
+    parsed.help_text = options.help();
+
+    if (result.count("dataset"))
+        parsed.dataset = result["dataset"].as<std::filesystem::path>();
+
+    parsed.min_samples_leaf = result["min-samples-leaf"].as<size_t>();
+    parsed.min_samples_split = result["min-samples-split"].as<size_t>();
+    parsed.max_depth = result["max-depth"].as<size_t>();
+
+    return parsed;
+}

@@ -1,11 +1,11 @@
 #include "feature_info.hpp"
-#include "config.hpp"
 
 #include <algorithm>
 #include <cmath>
-#include <ranges>
-#include <stdexcept>
 #include <set>
+#include <stdexcept>
+
+#include "config.hpp"
 
 double mean(std::span<const double> values)
 {
@@ -129,8 +129,8 @@ CategoricalFeatureInfo analyze_categorical_column(const CategoricalColumn &colum
         info.frequencies[*elem]++;
         info.max_freq = std::max(info.max_freq, info.frequencies[*elem]);
     }
-    for (auto &category : categories)
-        info.categories.push_back(std::move(category));
+    for (const auto &category : categories)
+        info.categories.push_back(category);
 
     return info;
 }

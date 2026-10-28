@@ -1,11 +1,11 @@
 #pragma once
 
-#include "matrix_slice.hpp"
-
-#include <vector>
+#include <optional>
 #include <span>
 #include <stdexcept>
-#include <optional>
+#include <vector>
+
+#include "matrix_slice.hpp"
 
 enum class Layout
 {
@@ -24,8 +24,10 @@ private:
     Layout m_layout;
 
 public:
-    Matrix(size_t m = 0, size_t n = 0, Layout layout = Layout::RowMajor) : m_data(m * n, 0.), m_rows{m}, m_cols{n}, m_layout{layout} {};
-    Matrix(const Matrix &other, std::span<const size_t> row_indexes) : m_rows{row_indexes.size()}, m_cols{other.get_cols()}, m_layout{other.m_layout}
+    Matrix(size_t m = 0, size_t n = 0, Layout layout = Layout::RowMajor)
+        : m_data(m * n, 0.), m_rows{m}, m_cols{n}, m_layout{layout} {};
+    Matrix(const Matrix &other, std::span<const size_t> row_indexes)
+        : m_rows{row_indexes.size()}, m_cols{other.get_cols()}, m_layout{other.m_layout}
     {
         m_data.resize(m_rows * m_cols);
 

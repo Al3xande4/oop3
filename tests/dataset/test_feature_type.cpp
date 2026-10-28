@@ -15,7 +15,8 @@ int main()
         "7,a,70.5,30\n"
         "1,b,80.5,30\n"
         "2,a,90.5,10\n"
-        "3,b,100.5,100\n");
+        "3,b,100.5,100\n"
+    );
 
     Dataset ds = Dataset::load_dataset(csv);
     DatasetInfo info = ds.analyse();

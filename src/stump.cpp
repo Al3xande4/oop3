@@ -1,10 +1,10 @@
-#include "dataset/transformed.hpp"
-#include "models/api/model.hpp"
 #include "models/decision_trees/stump.hpp"
-#include "cli.hpp"
 
-#include <iostream>
 #include <filesystem>
+#include <iostream>
+
+#include "cli.hpp"
+#include "dataset/transformed.hpp"
 
 int main(int argc, char *argv[])
 {
@@ -20,7 +20,8 @@ int main(int argc, char *argv[])
 
         if (!options.dataset)
         {
-            std::cout << "You must specify input binary file, if you don't have it, run ds_load to convert csv format into binary matrix representations, to see options use --help\n";
+            std::cout << "You must specify input binary file, if you don't have it, run ds_load to convert csv format "
+                         "into binary matrix representations, to see options use --help\n";
             return 1;
         }
 

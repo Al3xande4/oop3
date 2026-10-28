@@ -3,14 +3,14 @@
 
 namespace
 {
-    constexpr int kRows = 10;
-    constexpr double kMin = 1.5;
-    constexpr double kMax = 10.5;
+constexpr int kRows = 10;
+constexpr double kMin = 1.5;
+constexpr double kMax = 10.5;
 
-    double scaled(int i)
-    {
-        return (kMin + i - kMin) / (kMax - kMin);
-    }
+double scaled(int i)
+{
+    return (kMin + i - kMin) / (kMax - kMin);
+}
 } // namespace
 
 int main()
@@ -27,7 +27,8 @@ int main()
         "7.5,green,10\n"
         "8.5,red,10\n"
         "9.5,blue,10\n"
-        "10.5,green,10\n");
+        "10.5,green,10\n"
+    );
 
     Dataset ds = Dataset::load_dataset(csv);
     DatasetInfo info = ds.analyse();
@@ -35,8 +36,7 @@ int main()
     CHECK(std::holds_alternative<NumericFeatureInfo>(info.feature_info.at("val")));
     CHECK(std::holds_alternative<CategoricalFeatureInfo>(info.feature_info.at("grp")));
 
-    const std::vector<std::string> &cats =
-        std::get<CategoricalFeatureInfo>(info.feature_info.at("grp")).categories;
+    const std::vector<std::string> &cats = std::get<CategoricalFeatureInfo>(info.feature_info.at("grp")).categories;
     CHECK(cats.size() == 3);
     CHECK(cats[0] == "blue");
     CHECK(cats[1] == "green");
@@ -50,8 +50,9 @@ int main()
     CHECK(onehot.feature_names[2] == "grp_green");
     CHECK(onehot.feature_names[3] == "grp_red");
 
-    const std::string expected_grp[10] = {"red", "blue", "red", "green", "blue",
-                                          "red", "green", "red", "blue", "green"};
+    const std::string expected_grp[10] = {
+        "red", "blue", "red", "green", "blue", "red", "green", "red", "blue", "green"
+    };
     const std::string cat_order[3] = {"blue", "green", "red"};
 
     for (int i = 0; i < kRows; i++)

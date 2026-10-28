@@ -1,12 +1,14 @@
 #include "dataset.hpp"
-#include "config.hpp"
-#include "helpers.hpp"
 
-#include <set>
-#include <string>
 #include <algorithm>
 #include <charconv>
 #include <fstream>
+#include <ranges>
+#include <set>
+#include <string>
+
+#include "config.hpp"
+#include "helpers.hpp"
 
 std::vector<std::string> parse_header(std::string_view header)
 {
@@ -14,8 +16,7 @@ std::vector<std::string> parse_header(std::string_view header)
     std::set<std::string> names;
 
     for (auto s : header | std::views::split(datasetconfig::separator) |
-                      std::views::transform([](auto s)
-                                            { return trim(std::string_view(s.begin(), s.end())); }))
+                      std::views::transform([](auto s) { return trim(std::string_view(s.begin(), s.end())); }))
     {
         if (s.empty())
             throw std::runtime_error{"Empty header field."};
@@ -35,12 +36,12 @@ using Row = std::vector<Cell>;
 Row parse_row(std::string_view row)
 {
     Row result;
-    for (auto token : row | std::views::split(datasetconfig::separator) | std::views::transform([](auto s)
-                                                                                                { return trim(std::string_view(s.begin(), s.end())); }))
+    for (auto token : row | std::views::split(datasetconfig::separator) |
+                          std::views::transform([](auto s) { return trim(std::string_view(s.begin(), s.end())); }))
     {
         if (std::ranges::equal(token, datasetconfig::missing_field))
         {
-            result.push_back(std::nullopt);
+            result.emplace_back(std::nullopt);
             continue;
         }
 
@@ -48,16 +49,16 @@ Row parse_row(std::string_view row)
         auto [ptr, ec] = std::from_chars(token.data(), token.data() + token.size(), value);
         if (ptr != token.data() + token.size())
         {
-            result.push_back(token);
+            result.emplace_back(token);
             continue;
         }
-        result.push_back(value);
+        result.emplace_back(value);
     }
 
     return result;
 }
 
-Dataset Dataset::load_dataset(std::filesystem::path path, std::optional<size_t> target_column)
+Dataset Dataset::load_dataset(const std::filesystem::path &path, std::optional<size_t> target_column)
 {
     Dataset dataset;
 
@@ -86,22 +87,24 @@ Dataset Dataset::load_dataset(std::filesystem::path path, std::optional<size_t> 
             throw std::runtime_error{
                 std::string{"Size of header and row are not compatible."
                             " At row: "} +
-                std::to_string(row_index + 1)};
+                std::to_string(row_index + 1)
+            };
 
         for (size_t i = 0; i < r.size(); i++)
         {
             Column &col = dataset.m_columns[column_names[i]];
             Cell c = r[i];
-            if (c && determined_columns[i] && std::holds_alternative<NumericColumn>(col) ^ std::holds_alternative<double>(*c))
+            if (c && determined_columns[i] &&
+                std::holds_alternative<NumericColumn>(col) ^ std::holds_alternative<double>(*c))
                 throw std::runtime_error{
                     std::string{"Type of fields are incompatible. "
                                 " At row: "} +
-                    std::to_string(row_index + 1) + std::string{", at column: "} + column_names[i]};
+                    std::to_string(row_index + 1) + std::string{", at column: "} + column_names[i]
+                };
 
             if (!c)
             {
-                std::visit([](auto &vec)
-                           { vec.values.push_back(std::nullopt); }, col);
+                std::visit([](auto &vec) { vec.values.push_back(std::nullopt); }, col);
                 continue;
             }
 
@@ -135,8 +138,7 @@ Dataset Dataset::load_dataset(std::filesystem::path path, std::optional<size_t> 
 
     for (size_t i = 0; i < determined_columns.size(); i++)
         if (!determined_columns[i])
-            throw std::runtime_error{
-                "Couldn't deduce type of column: " + column_names[i]};
+            throw std::runtime_error{"Couldn't deduce type of column: " + column_names[i]};
 
     std::swap(column_names[*target_column], column_names.back());
     dataset.m_target_name = column_names.back();
@@ -161,9 +163,9 @@ Dataset Dataset::load_dataset(std::filesystem::path path, std::optional<size_t> 
             for (auto val : std::get<NumericColumn>(column))
             {
                 if (val)
-                    categorical_column.values.push_back(std::to_string(*val));
+                    categorical_column.values.emplace_back(std::to_string(*val));
                 else
-                    categorical_column.values.push_back(std::nullopt);
+                    categorical_column.values.emplace_back(std::nullopt);
             }
             column = std::move(categorical_column);
         }
@@ -221,7 +223,8 @@ TransformedDataset Dataset::transform(
     const DatasetInfo &info,
     const ScalingStrategy &scaling,
     CategoryEncoding encoding,
-    Layout layout) const
+    Layout layout
+) const
 {
     size_t cols = m_column_names.size();
     size_t rows = info.total_count;
@@ -248,8 +251,8 @@ TransformedDataset Dataset::transform(
         if (std::holds_alternative<CategoricalColumn>(column) && encoding == CategoryEncoding::ONE_HOT)
         {
             const auto &categories = std::get<CategoricalFeatureInfo>(info.feature_info.at(name)).categories;
-            for (size_t idx = 0; idx < categories.size(); idx++)
-                names.push_back(name + "_" + categories[idx]);
+            for (const auto &categorie : categories)
+                names.push_back(name + "_" + categorie);
 
             continue;
         }
@@ -279,7 +282,7 @@ TransformedDataset Dataset::transform(
             if (encoding == CategoryEncoding::ONE_HOT)
             {
                 for (size_t idx = 0; idx < categories.size(); idx++)
-                    matrix(i, j + offset + idx) = *category == categories[idx];
+                    matrix(i, j + offset + idx) = static_cast<double>(category.value() == categories[idx]);
 
                 offset += categories.size() - 1;
 

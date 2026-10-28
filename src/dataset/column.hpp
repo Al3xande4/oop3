@@ -1,9 +1,9 @@
 #pragma once
 
-#include <vector>
 #include <optional>
-#include <variant>
 #include <string>
+#include <variant>
+#include <vector>
 
 struct NumericColumn
 {

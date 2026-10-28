@@ -1,11 +1,10 @@
 #pragma once
 
-#include "column.hpp"
-#include "config.hpp"
-
-#include <span>
 #include <map>
+#include <span>
 #include <unordered_map>
+
+#include "column.hpp"
 
 struct NumericFeatureInfo
 {
@@ -41,18 +40,14 @@ struct CategoricalFeatureInfo
 
     std::vector<std::string> categories;
 
-    std::unordered_map<
-        std::string,
-        std::size_t>
-        frequencies;
+    std::unordered_map<std::string, std::size_t> frequencies;
 
     std::size_t max_freq{1};
 };
 
 CategoricalFeatureInfo analyze_categorical_column(const CategoricalColumn &column);
 
-using FeatureInfo =
-    std::variant<NumericFeatureInfo, CategoricalFeatureInfo>;
+using FeatureInfo = std::variant<NumericFeatureInfo, CategoricalFeatureInfo>;
 
 struct DatasetInfo
 {

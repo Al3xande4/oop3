@@ -1,16 +1,14 @@
-#include "test_util.hpp"
-#include "models/decision_trees/stump.hpp"
-
 #include <random>
+
+#include "models/decision_trees/stump.hpp"
+#include "test_util.hpp"
 
 class NaiveDecisionStumpRegressor : public DecisionStumpRegressor
 {
 public:
     using DecisionStumpRegressor::DecisionStumpRegressor;
 
-    void fit(
-        const Matrix &features,
-        std::span<const double> targets) override
+    void fit(const Matrix &features, std::span<const double> targets) override
     {
         m_fitted = true;
         m_fit_feature_size = features.get_cols();
@@ -76,13 +74,8 @@ public:
                 }
                 else if (std::abs(sse - best) < 1e-9)
                 {
-                    if (col < m_split.value().feature)
-                    {
-                        m_split = {.feature = col, .threshold = t, .score = best};
-                        m_left_mean = mean_left;
-                        m_right_mean = mean_right;
-                    }
-                    else if (col == m_split.value().feature && t < m_split.value().threshold)
+                    if ((col < m_split.value().feature) ||
+                        (col == m_split.value().feature && t < m_split.value().threshold))
                     {
                         m_split = {.feature = col, .threshold = t, .score = best};
                         m_left_mean = mean_left;
@@ -172,8 +165,9 @@ void benchmark_fast_vs_naive()
     double fast_ms = std::chrono::duration<double, std::milli>(t1 - t0).count();
     double naive_ms = std::chrono::duration<double, std::milli>(t3 - t2).count();
 
-    std::printf("Comparison n=%zu, d=%zu. Fast O(d*n log n): %.3f ms | Naive O(d*n^2): %.3f ms\n",
-                n, d, fast_ms, naive_ms);
+    std::printf(
+        "Comparison n=%zu, d=%zu. Fast O(d*n log n): %.3f ms | Naive O(d*n^2): %.3f ms\n", n, d, fast_ms, naive_ms
+    );
 }
 
 int main()

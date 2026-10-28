@@ -1,10 +1,11 @@
-#include "dataset/dataset.hpp"
-#include "dataset/config.hpp"
-#include "dataset/imputation.hpp"
-#include "cli.hpp"
 #include <cstdlib>
-#include <iostream>
 #include <filesystem>
+#include <iostream>
+
+#include "cli.hpp"
+#include "dataset/config.hpp"
+#include "dataset/dataset.hpp"
+#include "dataset/imputation.hpp"
 
 int main(int argc, char *argv[])
 {
@@ -50,7 +51,8 @@ int main(int argc, char *argv[])
         scaling = new RobustScaling();
     else
     {
-        std::cout << "Unknown scaling strategy, please use one of: minmax, standart, robust. Using minmax as default.\n";
+        std::cout
+            << "Unknown scaling strategy, please use one of: minmax, standart, robust. Using minmax as default.\n";
         scaling = new RobustScaling();
     }
 

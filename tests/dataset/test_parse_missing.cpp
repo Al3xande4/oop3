@@ -1,3 +1,4 @@
+#include "dataset/config.hpp"
 #include "dataset/dataset.hpp"
 #include "test_util.hpp"
 
@@ -15,7 +16,8 @@ int main()
         "7,alpha,\n"
         "8,beta,\n"
         "9,gamma,\n"
-        ",beta,\n");
+        ",beta,\n"
+    );
 
     Dataset ds = Dataset::load_dataset(csv);
     DatasetInfo info = ds.analyse();
@@ -41,8 +43,10 @@ int main()
     CHECK(std::get<CategoricalFeatureInfo>(after.feature_info.at("cat")).missing_count == 0);
 
     CHECK_NEAR(std::get<NumericFeatureInfo>(after.feature_info.at("num")).median, 5.0, 1e-12);
-    CHECK(std::get<CategoricalFeatureInfo>(after.feature_info.at("cat"))
-              .frequencies.at(datasetconfig::category_imputation) == 1);
+    CHECK(
+        std::get<CategoricalFeatureInfo>(after.feature_info.at("cat"))
+            .frequencies.at(datasetconfig::category_imputation) == 1
+    );
 
     std::filesystem::remove(csv);
 

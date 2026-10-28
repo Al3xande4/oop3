@@ -1,19 +1,22 @@
 #include "stump.hpp"
-#include "models/api/errors.hpp"
 
-#include <cmath>
-#include <ranges>
 #include <algorithm>
+#include <cmath>
 #include <numeric>
 #include <unordered_map>
-#include <stdexcept>
 
-void DecisionStumpRegressor::fit(
-    const Matrix &features,
-    std::span<const double> targets)
+#include "criteria/gini.hpp"
+#include "criteria/variance.hpp"
+#include "models/api/errors.hpp"
+#include "split_finder.hpp"
+
+void DecisionStumpRegressor::fit(const Matrix &features, std::span<const double> targets)
 {
     if (features.get_rows() != targets.size())
-        throw DimensionMismatch("DecisionStump.fit: features and targets mismatch sizes: features - " + std::to_string(features.get_rows()) + ", targets - " + std::to_string(targets.size()));
+        throw DimensionMismatch(
+            "DecisionStump.fit: features and targets mismatch sizes: features - " +
+            std::to_string(features.get_rows()) + ", targets - " + std::to_string(targets.size())
+        );
 
     if (targets.size() == 0)
         throw EmptyData("DecisionStump.fit: targets size is 0");
@@ -27,13 +30,10 @@ void DecisionStumpRegressor::fit(
     std::vector<size_t> feature_ids(features.get_cols());
     std::iota(feature_ids.begin(), feature_ids.end(), 0ULL);
 
-    m_split = m_split_finder.find_best(
-        features,
-        targets,
-        object_ids,
-        feature_ids,
-        std::make_unique<VarianceCriteria>(),
-        m_min_samples_leaf);
+    VarianceCriteria crit;
+
+    SplitFinder m_split_finder;
+    m_split = m_split_finder.find_best(features, targets, object_ids, feature_ids, crit, m_min_samples_leaf);
 
     if (!m_split)
     {
@@ -68,14 +68,16 @@ void DecisionStumpRegressor::fit(
     m_right_mean = sum_right / count_right;
 }
 
-std::vector<double> DecisionStumpRegressor::predict(
-    const Matrix &features) const
+std::vector<double> DecisionStumpRegressor::predict(const Matrix &features) const
 {
     if (!m_fitted)
         throw NotFitted("Decision stump: predict called before fit");
 
     if (features.get_cols() != m_fit_feature_size)
-        throw DimensionMismatch("Decision stump: predict features sizes doesn't match fit features size. Predict features size - " + std::to_string(features.get_cols()) + ", training feature size - " + std::to_string(m_fit_feature_size));
+        throw DimensionMismatch(
+            "Decision stump: predict features sizes doesn't match fit features size. Predict features size - " +
+            std::to_string(features.get_cols()) + ", training feature size - " + std::to_string(m_fit_feature_size)
+        );
 
     std::vector<double> result(features.get_rows());
 
@@ -92,12 +94,13 @@ std::vector<double> DecisionStumpRegressor::predict(
     return result;
 }
 
-void DecisionStumpClassifier::fit(
-    const Matrix &features,
-    std::span<const double> targets)
+void DecisionStumpClassifier::fit(const Matrix &features, std::span<const double> targets)
 {
     if (features.get_rows() != targets.size())
-        throw DimensionMismatch("DecisionStump.fit: features and targets mismatch sizes: features - " + std::to_string(features.get_rows()) + ", targets - " + std::to_string(targets.size()));
+        throw DimensionMismatch(
+            "DecisionStump.fit: features and targets mismatch sizes: features - " +
+            std::to_string(features.get_rows()) + ", targets - " + std::to_string(targets.size())
+        );
 
     if (targets.size() == 0)
         throw EmptyData("DecisionStump.fit: targets size is 0");
@@ -108,13 +111,11 @@ void DecisionStumpClassifier::fit(
     std::vector<size_t> feature_ids(features.get_cols());
     std::iota(feature_ids.begin(), feature_ids.end(), 0ULL);
 
-    m_split = m_split_finder.find_best(
-        features,
-        targets,
-        object_ids,
-        feature_ids,
-        std::make_unique<GiniCriteria>(),
-        m_min_samples_leaf);
+    size_t classes_count = std::ranges::max(targets) + 1;
+    GiniCriteria crit(classes_count);
+
+    SplitFinder m_split_finder;
+    m_split = m_split_finder.find_best(features, targets, object_ids, feature_ids, crit, m_min_samples_leaf);
     m_fitted = true;
     m_fit_feature_size = features.get_cols();
 
@@ -164,14 +165,16 @@ void DecisionStumpClassifier::fit(
     }
 }
 
-std::vector<double> DecisionStumpClassifier::predict(
-    const Matrix &features) const
+std::vector<double> DecisionStumpClassifier::predict(const Matrix &features) const
 {
     if (!m_fitted)
         throw NotFitted("Decision stump: predict called before fit");
 
     if (features.get_cols() != m_fit_feature_size)
-        throw DimensionMismatch("Decision stump: predict features sizes doesn't match fit features size. Predict features size - " + std::to_string(features.get_cols()) + ", training feature size - " + std::to_string(m_fit_feature_size));
+        throw DimensionMismatch(
+            "Decision stump: predict features sizes doesn't match fit features size. Predict features size - " +
+            std::to_string(features.get_cols()) + ", training feature size - " + std::to_string(m_fit_feature_size)
+        );
 
     std::vector<double> result(features.get_rows());
 

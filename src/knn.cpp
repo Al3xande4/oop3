@@ -1,12 +1,11 @@
-#include "dataset/transformed.hpp"
-#include "models/knn/model.hpp"
-#include "models/api/model.hpp"
-#include "models/api/distance.hpp"
-#include "cli.hpp"
-
-#include <iostream>
-#include <filesystem>
 #include <cmath>
+#include <filesystem>
+#include <iostream>
+
+#include "cli.hpp"
+#include "dataset/transformed.hpp"
+#include "models/api/distance.hpp"
+#include "models/knn/model.hpp"
 
 std::shared_ptr<IDistance> make_distance(const std::string &name)
 {
@@ -44,7 +43,8 @@ int main(int argc, char *argv[])
 
         if (!options.dataset)
         {
-            std::cout << "You must specify input binary file, if you don't have it, run ds_load to convert csv format into binary matrix representations, to see options use --help\n";
+            std::cout << "You must specify input binary file, if you don't have it, run ds_load to convert csv format "
+                         "into binary matrix representations, to see options use --help\n";
             return 1;
         }
 
@@ -53,7 +53,8 @@ int main(int argc, char *argv[])
         TransformedDataset dataset = TransformedDataset::load(path_binary);
         auto [train, test] = dataset.split(0.6);
 
-        std::cout << train.target_values.size() << " " << test.target_values.size() << " " << dataset.target_values.size() << '\n';
+        std::cout << train.target_values.size() << " " << test.target_values.size() << " "
+                  << dataset.target_values.size() << '\n';
 
         auto distance = make_distance(options.distance);
         auto weight = make_weight(options.weight);

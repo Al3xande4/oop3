@@ -1,13 +1,11 @@
 #pragma once
 
-#include "models/api/model.hpp"
-#include "models/api/errors.hpp"
-#include "split.hpp"
-
-#include <span>
-#include <memory>
 #include <optional>
-#include <unordered_map>
+#include <span>
+
+#include "models/api/errors.hpp"
+#include "models/api/model.hpp"
+#include "split.hpp"
 
 /**
  * @file stump.hpp
@@ -45,10 +43,8 @@ protected:
 
     size_t m_min_samples_leaf; ///< Минимальный размер листа
 
-    bool m_fitted;             ///< Признак успешного fit
-    size_t m_fit_feature_size; ///< Число столбцов обучающей матрицы
-
-    SplitFinder m_split_finder;
+    size_t m_fit_feature_size{0}; ///< Число столбцов обучающей матрицы
+    bool m_fitted{false};         ///< Признак успешного fit
 
 public:
     /**
@@ -57,7 +53,7 @@ public:
      * @param min_samples_leaf минимальное число объектов в листе, >= 1
      * @throw HyperParameterError @p min_samples_leaf меньше 1
      */
-    IDecisionStump(size_t min_samples_leaf) : m_split{std::nullopt}, m_min_samples_leaf{min_samples_leaf}, m_fitted{false}, m_fit_feature_size{0}
+    IDecisionStump(size_t min_samples_leaf) : m_split{std::nullopt}, m_min_samples_leaf{min_samples_leaf}
     {
         if (min_samples_leaf < 1)
             throw HyperParameterError("DecisionStump: min samples leaf must be greater than 0");
@@ -73,9 +69,7 @@ public:
      *       Допустимого разбиения может не оказаться — тогда признак
      *       и порог остаются @c std::nullopt (см. класс).
      */
-    virtual void fit(
-        const Matrix &features,
-        std::span<const double> targets) = 0;
+    virtual void fit(const Matrix &features, std::span<const double> targets) = 0;
 
     /**
      * @brief Индекс выбранного признака.
@@ -118,8 +112,6 @@ public:
      * @throw NotFitted до вызова @c fit
      */
     virtual double get_right_leaf() const = 0;
-
-    virtual ~IDecisionStump() = default;
 };
 
 /**
@@ -132,9 +124,9 @@ public:
 class DecisionStumpRegressor : public IDecisionStump
 {
 protected:
-    double m_left_mean;  ///< Среднее целей левого листа
-    double m_right_mean; ///< Среднее целей правого листа
-    double m_constant;   ///< Общее среднее (вырожденное разбиение)
+    double m_left_mean{};  ///< Среднее целей левого листа
+    double m_right_mean{}; ///< Среднее целей правого листа
+    double m_constant{};   ///< Общее среднее (вырожденное разбиение)
 
 public:
     /**
@@ -142,7 +134,7 @@ public:
      * @param min_samples_leaf минимальный размер листа, >= 1
      * @throw HyperParameterError @p min_samples_leaf меньше 1
      */
-    DecisionStumpRegressor(size_t min_samples_leaf) : IDecisionStump(min_samples_leaf), m_left_mean{0.}, m_right_mean{0.}, m_constant{0.} {};
+    DecisionStumpRegressor(size_t min_samples_leaf) : IDecisionStump(min_samples_leaf){};
 
     /**
      * @brief Подбирает порог по критерию дисперсии и считает средние листьев.
@@ -151,9 +143,7 @@ public:
      * @throw DimensionMismatch несовпадение числа строк и размера целей
      * @throw EmptyData пустая выборка
      */
-    void fit(
-        const Matrix &features,
-        std::span<const double> targets) override;
+    void fit(const Matrix &features, std::span<const double> targets) override;
 
     /**
      * @brief Предсказывает среднее целей листа, в который попадает объект.
@@ -162,8 +152,7 @@ public:
      * @throw NotFitted до @c fit
      * @throw DimensionMismatch число столбцов изменилось
      */
-    std::vector<double> predict(
-        const Matrix &features) const override;
+    std::vector<double> predict(const Matrix &features) const override;
 
     /**
      * @brief Среднее целей левого листа.
@@ -200,9 +189,9 @@ public:
 class DecisionStumpClassifier : public IDecisionStump
 {
 protected:
-    double m_left_most_common;  ///< Мода левого листа
-    double m_right_most_common; ///< Мода правого листа
-    double m_constant;          ///< Общая мода (вырожденное разбиение)
+    double m_left_most_common{};  ///< Мода левого листа
+    double m_right_most_common{}; ///< Мода правого листа
+    double m_constant{};          ///< Общая мода (вырожденное разбиение)
 
 public:
     /**
@@ -210,7 +199,7 @@ public:
      * @param min_samples_leaf минимальный размер листа, >= 1
      * @throw HyperParameterError @p min_samples_leaf меньше 1
      */
-    DecisionStumpClassifier(size_t min_samples_leaf) : IDecisionStump(min_samples_leaf), m_left_most_common{0.}, m_right_most_common{0.}, m_constant{0.} {};
+    DecisionStumpClassifier(size_t min_samples_leaf) : IDecisionStump(min_samples_leaf){};
 
     /**
      * @brief Подбирает порог по критерию Джини и считает моды листьев.
@@ -219,9 +208,7 @@ public:
      * @throw DimensionMismatch несовпадение числа строк и размера целей
      * @throw EmptyData пустая выборка
      */
-    void fit(
-        const Matrix &features,
-        std::span<const double> targets) override;
+    void fit(const Matrix &features, std::span<const double> targets) override;
 
     /**
      * @brief Предсказывает моду листа, в который попадает объект.
@@ -230,8 +217,7 @@ public:
      * @throw NotFitted до @c fit
      * @throw DimensionMismatch число столбцов изменилось
      */
-    std::vector<double> predict(
-        const Matrix &features) const override;
+    std::vector<double> predict(const Matrix &features) const override;
 
     /**
      * @brief Мода левого листа.

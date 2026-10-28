@@ -1,11 +1,10 @@
 #include "models/knn/model.hpp"
-#include "models/api/errors.hpp"
 
-#include <functional>
+#include <algorithm>
 #include <map>
 #include <queue>
-#include <iostream>
-#include <algorithm>
+
+#include "models/api/errors.hpp"
 
 double UniformWeight::weight(double) const
 {
@@ -17,18 +16,19 @@ double InverseDistanceWeight::weight(double dist) const
     return 1. / (1e-9 + dist);
 };
 
-void KnnModel::fit(
-    const Matrix &features,
-    std::span<const double> target)
+void KnnModel::fit(const Matrix &features, std::span<const double> target)
 {
     if (features.get_rows() != target.size())
-        throw DimensionMismatch("KnnModel.fit: features and targets mismatch: " + std::to_string(features.get_rows()) + ", " + std::to_string(target.size()));
+        throw DimensionMismatch(
+            "KnnModel.fit: features and targets mismatch: " + std::to_string(features.get_rows()) + ", " +
+            std::to_string(target.size())
+        );
 
     if (features.get_rows() == 0)
         throw EmptyData("KnnModel.fit: empty data");
 
     if (m_k > features.get_rows())
-        throw std::invalid_argument("KnnModel.fit: k is bigger than training data");
+        throw HyperParameterError("KnnModel.fit: k is bigger than features");
 
     m_data = features;
     m_target.assign(target.begin(), target.end());
@@ -38,8 +38,7 @@ void KnnModel::fit(
 
 std::vector<KnnModel::Neighbor> KnnModel::find_k_nearest(std::span<const double> object) const
 {
-    auto comparator = [](const Neighbor &a, const Neighbor &b)
-    { return a.distance < b.distance; };
+    auto comparator = [](const Neighbor &a, const Neighbor &b) { return a.distance < b.distance; };
 
     std::priority_queue<Neighbor, std::vector<Neighbor>, decltype(comparator)> nearest(comparator);
 
@@ -63,7 +62,7 @@ std::vector<KnnModel::Neighbor> KnnModel::find_k_nearest(std::span<const double>
     std::vector<Neighbor> result;
     while (!nearest.empty())
     {
-        result.emplace_back(std::move(nearest.top()));
+        result.emplace_back(nearest.top());
         nearest.pop();
     }
 
@@ -77,7 +76,10 @@ std::vector<double> KnnClassifier::predict(const Matrix &features) const
         throw NotFitted("KnnClassifier.predict called before fit");
 
     if (features.get_cols() != m_data.get_cols())
-        throw DimensionMismatch("KnnClassifier.predict features sizes doesn't match fit features size. Predict features size - " + std::to_string(features.get_cols()) + ", training feature size - " + std::to_string(m_data.get_cols()));
+        throw DimensionMismatch(
+            "KnnClassifier.predict features sizes doesn't match fit features size. Predict features size - " +
+            std::to_string(features.get_cols()) + ", training feature size - " + std::to_string(m_data.get_cols())
+        );
 
     std::vector<double> predictions;
     predictions.reserve(features.get_rows());
@@ -109,7 +111,10 @@ std::vector<double> KnnRegressor::predict(const Matrix &features) const
         throw NotFitted("KnnRegressor.predict called before fit");
 
     if (features.get_cols() != m_data.get_cols())
-        throw DimensionMismatch("KnnRegressor.predict features sizes doesn't match fit features size. Predict features size - " + std::to_string(features.get_cols()) + ", training feature size - " + std::to_string(m_data.get_cols()));
+        throw DimensionMismatch(
+            "KnnRegressor.predict features sizes doesn't match fit features size. Predict features size - " +
+            std::to_string(features.get_cols()) + ", training feature size - " + std::to_string(m_data.get_cols())
+        );
 
     std::vector<double> predictions;
     predictions.reserve(features.get_rows());

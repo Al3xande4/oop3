@@ -1,16 +1,17 @@
 #include "models/api/distance.hpp"
-#include "models/api/errors.hpp"
 
-#include <ranges>
 #include <algorithm>
 #include <cmath>
 
-double EuclidDistance::compute(
-    std::span<const double> a,
-    std::span<const double> b) const
+#include "models/api/errors.hpp"
+
+double EuclidDistance::compute(std::span<const double> a, std::span<const double> b) const
 {
     if (a.size() != b.size())
-        throw DimensionMismatch("Euclid distance: vectors sizes are not equal. First - " + std::to_string(a.size()) + ", second - " + std::to_string(b.size()) + ".");
+        throw DimensionMismatch(
+            "Euclid distance: vectors sizes are not equal. First - " + std::to_string(a.size()) + ", second - " +
+            std::to_string(b.size()) + "."
+        );
 
     double res = 0.;
     for (size_t i = 0; i < a.size(); i++)
@@ -19,12 +20,13 @@ double EuclidDistance::compute(
     return std::sqrt(res);
 }
 
-double EuclidDistance::compute(
-    const MatrixSlice<const double> &a,
-    const MatrixSlice<const double> &b) const
+double EuclidDistance::compute(const MatrixSlice<const double> &a, const MatrixSlice<const double> &b) const
 {
     if (a.size() != b.size())
-        throw DimensionMismatch("Euclid distance: vectors sizes are not equal. First - " + std::to_string(a.size()) + ", second - " + std::to_string(b.size()) + ".");
+        throw DimensionMismatch(
+            "Euclid distance: vectors sizes are not equal. First - " + std::to_string(a.size()) + ", second - " +
+            std::to_string(b.size()) + "."
+        );
 
     double res = 0.;
     for (size_t i = 0; i < a.size(); i++)
@@ -33,12 +35,13 @@ double EuclidDistance::compute(
     return std::sqrt(res);
 }
 
-double ManhattenDistance::compute(
-    std::span<const double> a,
-    std::span<const double> b) const
+double ManhattenDistance::compute(std::span<const double> a, std::span<const double> b) const
 {
     if (a.size() != b.size())
-        throw DimensionMismatch("ManhattenDistance: vectors sizes are not equal. First - " + std::to_string(a.size()) + ", second - " + std::to_string(b.size()) + ".");
+        throw DimensionMismatch(
+            "ManhattenDistance: vectors sizes are not equal. First - " + std::to_string(a.size()) + ", second - " +
+            std::to_string(b.size()) + "."
+        );
 
     double res = 0.;
     for (size_t i = 0; i < a.size(); i++)
@@ -47,12 +50,13 @@ double ManhattenDistance::compute(
     return res;
 }
 
-double ManhattenDistance::compute(
-    const MatrixSlice<const double> &a,
-    const MatrixSlice<const double> &b) const
+double ManhattenDistance::compute(const MatrixSlice<const double> &a, const MatrixSlice<const double> &b) const
 {
     if (a.size() != b.size())
-        throw DimensionMismatch("ManhattenDistance: vectors sizes are not equal. First - " + std::to_string(a.size()) + ", second - " + std::to_string(b.size()) + ".");
+        throw DimensionMismatch(
+            "ManhattenDistance: vectors sizes are not equal. First - " + std::to_string(a.size()) + ", second - " +
+            std::to_string(b.size()) + "."
+        );
 
     double res = 0.;
     for (size_t i = 0; i < a.size(); i++)
@@ -61,12 +65,13 @@ double ManhattenDistance::compute(
     return res;
 }
 
-double ChebyshevDistance::compute(
-    std::span<const double> a,
-    std::span<const double> b) const
+double ChebyshevDistance::compute(std::span<const double> a, std::span<const double> b) const
 {
     if (a.size() != b.size())
-        throw DimensionMismatch("Chebyshev distance: vectors sizes are not equal. First - " + std::to_string(a.size()) + ", second - " + std::to_string(b.size()) + ".");
+        throw DimensionMismatch(
+            "Chebyshev distance: vectors sizes are not equal. First - " + std::to_string(a.size()) + ", second - " +
+            std::to_string(b.size()) + "."
+        );
 
     double res = 0.;
     for (size_t i = 0; i < a.size(); i++)
@@ -75,12 +80,13 @@ double ChebyshevDistance::compute(
     return res;
 }
 
-double ChebyshevDistance::compute(
-    const MatrixSlice<const double> &a,
-    const MatrixSlice<const double> &b) const
+double ChebyshevDistance::compute(const MatrixSlice<const double> &a, const MatrixSlice<const double> &b) const
 {
     if (a.size() != b.size())
-        throw DimensionMismatch("Chebyshev distance: vectors sizes are not equal. First - " + std::to_string(a.size()) + ", second - " + std::to_string(b.size()) + ".");
+        throw DimensionMismatch(
+            "Chebyshev distance: vectors sizes are not equal. First - " + std::to_string(a.size()) + ", second - " +
+            std::to_string(b.size()) + "."
+        );
 
     double res = 0.;
     for (size_t i = 0; i < a.size(); i++)

@@ -40,6 +40,18 @@ struct StumpOptions
     std::string help_text;
 };
 
+struct CartOptions
+{
+    std::optional<std::filesystem::path> dataset;
+    std::optional<size_t> min_samples_leaf;
+    std::optional<size_t> min_samples_split;
+    std::optional<size_t> max_depth;
+
+    bool help = false;
+    std::string help_text;
+};
+
 KnnOptions parse_knn_cli(int argc, char *argv[]);
 LoadOptions parse_load_cli(int argc, char *argv[]);
 StumpOptions parse_stump_cli(int argc, char *argv[]);
+CartOptions parse_cart_cli(int argc, char *argv[]);

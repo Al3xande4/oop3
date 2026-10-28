@@ -1,7 +1,7 @@
-#include "test_util.hpp"
-#include "dataset/transformed.hpp"
-
 #include <filesystem>
+
+#include "dataset/transformed.hpp"
+#include "test_util.hpp"
 
 int main()
 {
@@ -15,8 +15,7 @@ int main()
     original.target_name = "y";
     original.target_values = {10., 0., 1.};
 
-    const std::filesystem::path path =
-        std::filesystem::temp_directory_path() / "test_binary_io.bin";
+    const std::filesystem::path path = std::filesystem::temp_directory_path() / "test_binary_io.bin";
 
     // Act
     original.save(path);

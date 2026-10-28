@@ -1,6 +1,7 @@
 #include "transformed.hpp"
-#include <iostream>
+
 #include <fstream>
+#include <iostream>
 
 void TransformedDataset::save(const std::filesystem::path &path) const
 {

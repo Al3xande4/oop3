@@ -8,7 +8,7 @@
 class NonContiguousSliceError : public std::logic_error
 {
 public:
-    NonContiguousSliceError(const std::string &msg) : std::logic_error(msg) {};
+    NonContiguousSliceError(const std::string &msg) : std::logic_error(msg){};
 };
 
 enum class SliceAxis
@@ -22,8 +22,7 @@ class MatrixSlice
 {
 public:
     MatrixSlice() noexcept = default;
-    MatrixSlice(T *data, std::size_t size,
-                std::size_t stride, SliceAxis axis);
+    MatrixSlice(T *data, std::size_t size, std::size_t stride, SliceAxis axis);
 
     std::size_t size() const noexcept;
     bool empty() const noexcept;
@@ -47,8 +46,7 @@ private:
 };
 
 template <class T>
-MatrixSlice<T>::MatrixSlice(T *data, std::size_t size,
-                            std::size_t stride, SliceAxis axis)
+MatrixSlice<T>::MatrixSlice(T *data, std::size_t size, std::size_t stride, SliceAxis axis)
 {
     if (size != 0 && stride == 0)
         throw std::invalid_argument("MatrixSlice: stride must be greater than 0");
@@ -111,7 +109,10 @@ template <class T>
 T &MatrixSlice<T>::at(std::size_t index) const
 {
     if (index >= m_size)
-        throw std::out_of_range("MatrixSlice.at: index out of range " + std::to_string(index * m_stride) + " size: " + std::to_string(m_size));
+        throw std::out_of_range(
+            "MatrixSlice.at: index out of range " + std::to_string(index * m_stride) +
+            " size: " + std::to_string(m_size)
+        );
 
     return m_data[index * m_stride];
 }

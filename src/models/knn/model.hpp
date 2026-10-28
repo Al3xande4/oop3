@@ -1,11 +1,12 @@
 #pragma once
 
-#include <vector>
 #include <memory>
+#include <utility>
+#include <vector>
 
-#include "models/api/model.hpp"
 #include "models/api/distance.hpp"
 #include "models/api/errors.hpp"
+#include "models/api/model.hpp"
 
 class IKnnWeight
 {
@@ -42,18 +43,17 @@ protected:
     std::shared_ptr<IDistance> m_distance;
     std::shared_ptr<IKnnWeight> m_weight_strategy;
 
-    bool m_fitted;
+    bool m_fitted{false};
 
 public:
-    KnnModel(size_t k, std::shared_ptr<IDistance> distance, std::shared_ptr<IKnnWeight> weight_strategy) : m_k{k}, m_distance{distance}, m_weight_strategy{weight_strategy}, m_fitted{false}
+    KnnModel(size_t k, std::shared_ptr<IDistance> distance, std::shared_ptr<IKnnWeight> weight_strategy)
+        : m_k{k}, m_distance{std::move(distance)}, m_weight_strategy{std::move(weight_strategy)}
     {
         if (k == 0)
             throw HyperParameterError("KnnModel: k must be greater than 0");
     };
 
-    void fit(
-        const Matrix &features,
-        std::span<const double> target) override;
+    void fit(const Matrix &features, std::span<const double> target) override;
 
 protected:
     struct Neighbor

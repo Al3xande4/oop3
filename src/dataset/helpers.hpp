@@ -1,6 +1,5 @@
 #pragma once
 
-#include <ranges>
 #include <string>
 
 inline std::string trim(std::string_view s)

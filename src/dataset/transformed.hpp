@@ -1,8 +1,9 @@
 #pragma once
 
 #include <filesystem>
-#include <span>
-#include <functional>
+#include <string>
+#include <vector>
+
 #include "matrix.hpp"
 
 struct TransformedDataset

@@ -1,11 +1,11 @@
 #pragma once
 
+#include "category_encoding.hpp"
 #include "column.hpp"
 #include "feature_info.hpp"
 #include "imputation.hpp"
-#include "transformed.hpp"
-#include "category_encoding.hpp"
 #include "scaling.hpp"
+#include "transformed.hpp"
 
 class Dataset
 {
@@ -26,7 +26,8 @@ public:
         const DatasetInfo &info,
         const ScalingStrategy &scaling,
         CategoryEncoding encoding,
-        Layout layout) const;
+        Layout layout
+    ) const;
 
-    static Dataset load_dataset(std::filesystem::path, std::optional<size_t> = std::nullopt);
+    static Dataset load_dataset(const std::filesystem::path &, std::optional<size_t> = std::nullopt);
 };

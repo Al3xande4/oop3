@@ -1,9 +1,23 @@
 cmake_minimum_required(VERSION 3.24)
 project(sem3-oop LANGUAGES CXX)
 
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
+
+find_package(Doxygen)
+
+if(DOXYGEN_FOUND)
+    add_custom_target(docs
+        COMMAND ${DOXYGEN_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile
+        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+        COMMENT "Генерация HTML-документации Doxygen..."
+        VERBATIM
+    )
+else()
+    message(STATUS "Doxygen не найден, таргет 'docs' отключен")
+endif()
 
 add_compile_options(-Wall -Wextra)
 
