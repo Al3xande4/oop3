@@ -2,10 +2,12 @@
 
 #include <algorithm>
 #include <cstddef>
+#include <variant>
 
 #include "criteria/search_criteria.hpp"
 #include "dataset/matrix.hpp"
 #include "leaf/leaf_strategy.hpp"
+#include "models/decision_trees/split.hpp"
 #include "models/decision_trees/split_finder.hpp"
 #include "tree_node.hpp"
 
@@ -75,6 +77,16 @@ Node<typename TreeBuilder<Crit, LeafStrat>::value_type> TreeBuilder<Crit, LeafSt
         return Leaf<value_type>{m_leaf_strategy.build(targets, object_ids)};
 
     if (object_ids.size() < m_min_samples_split)
+        return Leaf<value_type>{m_leaf_strategy.build(targets, object_ids)};
+
+    bool all_same = true;
+    for (size_t i = 1; i < object_ids.size(); ++i)
+        if (std::abs(targets[object_ids[i]] - targets[object_ids[0]]) > 1e-9)
+        {
+            all_same = false;
+            break;
+        }
+    if (all_same)
         return Leaf<value_type>{m_leaf_strategy.build(targets, object_ids)};
 
     std::optional<Split> split =

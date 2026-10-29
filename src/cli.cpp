@@ -106,7 +106,7 @@ CartOptions parse_cart_cli(int argc, char *argv[])
 {
     CartOptions parsed;
 
-    cxxopts::Options options("stump", "Decision stump");
+    cxxopts::Options options("cart", "Cart Tree");
 
     // clang-format off
     options.add_options()

@@ -1,9 +1,7 @@
 #include "cart.hpp"
 
 #include <algorithm>
-#include <memory>
 #include <optional>
-#include <variant>
 #include <vector>
 
 #include "models/api/errors.hpp"
@@ -13,6 +11,7 @@
 #include "models/decision_trees/leaf/proba_leaf.hpp"
 #include "tree_builder.hpp"
 #include "tree_searcher.hpp"
+#include "tree_stats.hpp"
 
 void CartRegressor::fit(const Matrix &features, std::span<const double> targets)
 {
@@ -26,6 +25,12 @@ void CartRegressor::fit(const Matrix &features, std::span<const double> targets)
     if (targets.size() == 0)
         throw EmptyData("CartRegressor.fit: targets size is 0");
 
+    if (features.get_cols() == 0)
+        throw EmptyData("CartRegressor.fit: features has 0 columns");
+
+    if (features.get_rows() == 0)
+        throw EmptyData("CartRegressor.fit: features is empty");
+
     m_fitted = true;
     m_fit_feature_size = features.get_cols();
 
@@ -38,12 +43,18 @@ void CartRegressor::fit(const Matrix &features, std::span<const double> targets)
     std::iota(feature_ids.begin(), feature_ids.end(), 0ULL);
 
     m_root = tree_builder.build(features, targets, object_ids, feature_ids);
+
+    TreeInspector inspector;
+    m_info = inspector.info(m_root);
 }
 
 std::vector<double> CartRegressor::predict(const Matrix &features) const
 {
     if (!m_fitted)
         throw NotFitted("CartRegressor: predict called before fit");
+
+    if (features.get_rows() == 0)
+        return std::vector<double>(0);
 
     if (features.get_cols() != m_fit_feature_size)
         throw DimensionMismatch(
@@ -73,16 +84,23 @@ void CartClassifier::fit(const Matrix &features, std::span<const double> targets
     if (targets.size() == 0)
         throw EmptyData("CartClassifier.fit: targets size is 0");
 
+    if (features.get_cols() == 0)
+        throw EmptyData("CartClassifier.fit: features has 0 columns");
+
+    if (features.get_rows() == 0)
+        throw EmptyData("CartClassifier.fit: features is empty");
+
     m_fitted = true;
     m_fit_feature_size = features.get_cols();
 
-    m_classes.assign(targets.begin(), targets.end());
-    std::ranges::sort(m_classes);
-    auto [drop_begin, drop_end] = std::ranges::unique(m_classes);
-    m_classes.erase(drop_begin, drop_end);
+    m_mapper.fit(targets);
 
     TreeBuilder tree_builder(
-        GiniCriteria{m_classes.size()}, ProbaLeaf{m_classes}, m_max_depth, m_min_samples_split, m_min_samples_leaf
+        GiniCriteria{m_mapper.num_classes()},
+        ProbaLeaf{m_mapper.num_classes()},
+        m_max_depth,
+        m_min_samples_split,
+        m_min_samples_leaf
     );
 
     std::vector<size_t> object_ids(features.get_rows());
@@ -91,13 +109,19 @@ void CartClassifier::fit(const Matrix &features, std::span<const double> targets
     std::vector<size_t> feature_ids(features.get_cols());
     std::iota(feature_ids.begin(), feature_ids.end(), 0ULL);
 
-    m_root = tree_builder.build(features, targets, object_ids, feature_ids);
+    m_root = tree_builder.build(features, m_mapper.encode(targets), object_ids, feature_ids);
+
+    TreeInspector inspector;
+    m_info = inspector.info(m_root);
 }
 
 std::vector<double> CartClassifier::predict(const Matrix &features) const
 {
     if (!m_fitted)
         throw NotFitted("CartClassifier: predict called before fit");
+
+    if (features.get_rows() == 0)
+        return std::vector<double>(0);
 
     if (features.get_cols() != m_fit_feature_size)
         throw DimensionMismatch(
@@ -115,7 +139,7 @@ std::vector<double> CartClassifier::predict(const Matrix &features) const
         const auto &probabilities = leaf.get_value();
 
         auto it = std::ranges::max_element(probabilities);
-        results[row] = m_classes[it - probabilities.begin()];
+        results[row] = m_mapper.decode(it - probabilities.begin());
     }
 
     return results;
@@ -126,6 +150,9 @@ Matrix CartClassifier::predict_proba(const Matrix &features) const
     if (!m_fitted)
         throw NotFitted("CartClassifier: predict called before fit");
 
+    if (features.get_rows() == 0)
+        return Matrix(0, m_mapper.num_classes());
+
     if (features.get_cols() != m_fit_feature_size)
         throw DimensionMismatch(
             "CartClassifier: predict features sizes doesn't match fit features size. Predict features size - " +
@@ -134,7 +161,7 @@ Matrix CartClassifier::predict_proba(const Matrix &features) const
 
     TreeSearcher tree_searcher;
 
-    Matrix result(features.get_rows(), m_classes.size());
+    Matrix result(features.get_rows(), m_mapper.num_classes());
 
     for (size_t row = 0; row < features.get_rows(); row++)
     {

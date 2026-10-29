@@ -6,10 +6,10 @@
 class ProbaLeaf
 {
 private:
-    std::span<const double> m_classes;
+    size_t m_classses_count{0};
 
 public:
-    ProbaLeaf(std::span<const double> classes) : m_classes{classes} {};
+    ProbaLeaf(size_t classes_count) : m_classses_count{classes_count} {};
 
     using value_type = std::vector<double>;
 

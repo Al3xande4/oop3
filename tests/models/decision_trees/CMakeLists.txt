@@ -3,6 +3,16 @@ set(DECISION_TREES_TESTS
     test_stump_exceptions
     test_stump_naive
     test_stump_basic
+    test_split_finder
+    test_cart_basic
+    test_cart_growth
+    test_cart_thresholds
+    test_cart_classifier
+    test_cart_classifier_labels
+    test_cart_features_subset
+    test_cart_edge
+    test_cart_layout
+    test_cart_exceptions
 )
 
 foreach(test_name IN LISTS DECISION_TREES_TESTS)

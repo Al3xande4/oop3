@@ -3,16 +3,8 @@
 #include <variant>
 
 #include "dataset/matrix_slice.hpp"
+#include "models/common/overloaded.hpp"
 #include "tree_node.hpp"
-
-template <class... Ts>
-struct Overloaded : Ts...
-{
-    using Ts::operator()...;
-};
-
-template <class... Ts>
-Overloaded(Ts...) -> Overloaded<Ts...>;
 
 class TreeSearcher
 {

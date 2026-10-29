@@ -8,6 +8,7 @@ set(LAB1_TESTS
     test_split
     test_target_column
     test_matrix_slice
+    test_matrix_slice_props
 )
 
 foreach(test_name IN LISTS LAB1_TESTS)

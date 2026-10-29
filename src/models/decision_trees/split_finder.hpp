@@ -51,7 +51,7 @@ std::optional<Split> SplitFinder::find_best(
 
     for (size_t col : columns)
     {
-        std::ranges::sort(order, [&](size_t a, size_t b) { return features[a][col] < features[b][col]; });
+        std::ranges::sort(order, [&](size_t a, size_t b) { return features(a, col) < features(b, col); });
 
         criteria.init();
         size_t count_left = 0, count_right = object_ids.size();
@@ -76,6 +76,8 @@ std::optional<Split> SplitFinder::find_best(
 
             double score = criteria.score();
             double t = std::midpoint(features(row, col), features(next_row, col));
+            if (t == features(next_row, col))
+                t = features(row, col);
 
             if (!result || score > result.value().score)
                 result = {.feature = col, .threshold = t, .score = score};

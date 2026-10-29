@@ -34,7 +34,7 @@ private:
 
 public:
     Branch(Node<T> left, Node<T> right, Split split)
-        : m_left(std::move(left)), m_right(std::move(right)), m_split(std::move(split)){};
+        : m_left(std::move(left)), m_right(std::move(right)), m_split(split){};
 
     const Node<T> &left() const { return m_left; };
     const Node<T> &right() const { return m_right; };
