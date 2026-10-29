@@ -1,40 +1,33 @@
-#include "test_util.hpp"
-#include "models/knn/model.hpp"
-
 #include <memory>
 #include <utility>
 #include <vector>
 
+#include "models/knn/model.hpp"
+#include "test_util.hpp"
+
 namespace
 {
-    Matrix make_column(const std::vector<double> &values)
+Matrix make_column(const std::vector<double> &values)
+{
+    Matrix m(values.size(), 1);
+    for (size_t i = 0; i < values.size(); i++)
+        m[i][0] = values[i];
+    return m;
+}
+
+struct SpyDistance : IDistance
+{
+    std::shared_ptr<IDistance> real;
+    mutable size_t calls = 0;
+
+    explicit SpyDistance(std::shared_ptr<IDistance> d) : real{std::move(d)} {}
+
+    double compute(const MatrixSlice<const double> &a, const MatrixSlice<const double> &b) const override
     {
-        Matrix m(values.size(), 1);
-        for (size_t i = 0; i < values.size(); i++)
-            m[i][0] = values[i];
-        return m;
+        ++calls;
+        return real->compute(a, b);
     }
-
-    struct SpyDistance : IDistance
-    {
-        std::shared_ptr<IDistance> real;
-        mutable size_t calls = 0;
-
-        explicit SpyDistance(std::shared_ptr<IDistance> d) : real{std::move(d)} {}
-
-        double compute(std::span<const double> a, std::span<const double> b) const override
-        {
-            ++calls;
-            return real->compute(a, b);
-        }
-        virtual double compute(
-            const MatrixSlice<const double> &a,
-            const MatrixSlice<const double> &b) const override
-        {
-            ++calls;
-            return real->compute(a, b);
-        }
-    };
+};
 
 } // namespace
 

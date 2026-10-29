@@ -36,7 +36,7 @@ void KnnModel::fit(const Matrix &features, std::span<const double> target)
     m_fitted = true;
 }
 
-std::vector<KnnModel::Neighbor> KnnModel::find_k_nearest(std::span<const double> object) const
+std::vector<KnnModel::Neighbor> KnnModel::find_k_nearest(const MatrixSlice<const double> &object) const
 {
     auto comparator = [](const Neighbor &a, const Neighbor &b) { return a.distance < b.distance; };
 
@@ -44,7 +44,7 @@ std::vector<KnnModel::Neighbor> KnnModel::find_k_nearest(std::span<const double>
 
     for (size_t i = 0; i < m_data.get_rows(); i++)
     {
-        double dist = m_distance->compute(m_data[i], object);
+        double dist = m_distance->compute(m_data(i, std::nullopt), object);
 
         if (nearest.size() < m_k)
         {
@@ -86,7 +86,7 @@ std::vector<double> KnnClassifier::predict(const Matrix &features) const
 
     for (size_t i = 0; i < features.get_rows(); i++)
     {
-        auto nearest = find_k_nearest(features[i]);
+        auto nearest = find_k_nearest(features(i, std::nullopt));
 
         std::map<double, double> frequencies;
         double prediction = 0;
@@ -121,7 +121,7 @@ std::vector<double> KnnRegressor::predict(const Matrix &features) const
 
     for (size_t i = 0; i < features.get_rows(); i++)
     {
-        auto nearest = find_k_nearest(features[i]);
+        auto nearest = find_k_nearest(features(i, std::nullopt));
 
         double weighted_sum = 0.;
         double weights = 0.;

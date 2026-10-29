@@ -62,7 +62,7 @@ protected:
         double distance;
     };
 
-    std::vector<Neighbor> find_k_nearest(std::span<const double> object) const;
+    std::vector<Neighbor> find_k_nearest(const MatrixSlice<const double> &object) const;
 };
 
 class KnnClassifier : public KnnModel

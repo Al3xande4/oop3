@@ -7,3 +7,6 @@ output/**
 docs/html
 docs/html/**
 .vscode
+.clangd
+.clang-format
+.cache/**
