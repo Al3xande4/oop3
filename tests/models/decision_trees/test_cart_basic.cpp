@@ -14,7 +14,7 @@ void test_max_depth_zero_regression()
     // max_depth = 0 — один лист: общее среднее по обучающей выборке.
     LabeledDataset data = make_step_regression();
 
-    CartRegressor model(0, 2, 1);
+    CartRegressor model(TreeParams{0, 2, 1});
     model.fit(data.X, data.y);
 
     std::vector<double> predictions = model.predict(data.X);
@@ -30,7 +30,7 @@ void test_max_depth_zero_classification()
     // max_depth = 0 — один лист с общими частотами классов.
     LabeledDataset data = make_three_class();
 
-    CartClassifier model(0, 2, 1);
+    CartClassifier model(TreeParams{0, 2, 1});
     model.fit(data.X, data.y);
 
     Matrix proba = model.predict_proba(data.X);
@@ -60,7 +60,7 @@ void test_depth_one_equals_stump_regression()
         for (std::size_t min_leaf : {std::size_t{1}, std::size_t{2}, std::size_t{3}})
         {
             DecisionStumpRegressor stump(min_leaf);
-            CartRegressor tree(1, 2, min_leaf);
+            CartRegressor tree(TreeParams{1, 2, min_leaf});
 
             stump.fit(data.X, data.y);
             tree.fit(data.X, data.y);
@@ -84,7 +84,7 @@ void test_depth_one_equals_stump_classification()
         for (std::size_t min_leaf : {std::size_t{1}, std::size_t{2}})
         {
             DecisionStumpClassifier stump(min_leaf);
-            CartClassifier tree(1, 2, min_leaf);
+            CartClassifier tree(TreeParams{1, 2, min_leaf});
 
             stump.fit(data.X, data.y);
             tree.fit(data.X, data.y);
@@ -103,7 +103,7 @@ void test_separable_regression_exact()
     // Сепарируемые данные: дерево глубины 1 восстанавливает оба уровня точно.
     LabeledDataset data = make_step_regression();
 
-    CartRegressor model(3, 2, 1);
+    CartRegressor model(TreeParams{3, 2, 1});
     model.fit(data.X, data.y);
 
     std::vector<double> predictions = model.predict(data.X);
@@ -122,7 +122,7 @@ void test_separable_classification_exact()
 {
     LabeledDataset data = make_binary_classification();
 
-    CartClassifier model(3, 2, 1);
+    CartClassifier model(TreeParams{3, 2, 1});
     model.fit(data.X, data.y);
 
     std::vector<double> predictions = model.predict(data.X);
@@ -144,8 +144,8 @@ void test_via_interface_polymorphism()
     LabeledDataset reg = make_nested_regression();
     LabeledDataset clf = make_binary_classification();
 
-    std::unique_ptr<IRegressor> regressor = std::make_unique<CartRegressor>(3, 2, 1);
-    std::unique_ptr<IClassifier> classifier = std::make_unique<CartClassifier>(3, 2, 1);
+    std::unique_ptr<IRegressor> regressor = std::make_unique<CartRegressor>(TreeParams{3, 2, 1});
+    std::unique_ptr<IClassifier> classifier = std::make_unique<CartClassifier>(TreeParams{3, 2, 1});
 
     regressor->fit(reg.X, reg.y);
     classifier->fit(clf.X, clf.y);

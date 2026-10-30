@@ -156,7 +156,7 @@ void test_model_routing_consistent_with_criterion()
     }
 
     // Дерево глубины 1: предсказания обязаны совпадать с этими средними.
-    CartRegressor model(1, 2, 1);
+    CartRegressor model({1, 2, 1});
     model.fit(X, y);
     std::vector<double> predictions = model.predict(X);
 

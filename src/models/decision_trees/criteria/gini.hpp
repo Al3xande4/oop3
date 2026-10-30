@@ -20,6 +20,7 @@ class GiniCriteria
 private:
     std::vector<size_t> m_category_count;
     std::vector<size_t> m_category_count_right;
+    double m_initial_right;
     size_t m_count_left, m_count_right, m_total_count;
     double m_left, m_right;
 
@@ -36,7 +37,11 @@ public:
      * @brief Считает частоты всех категорий.
      * @param targets полный вектор целей выборки
      */
-    void calculate_total(std::span<const double> targets, std::span<const size_t> object_ids);
+    void calculate_total(
+        std::span<const double> targets,
+        std::span<const size_t> object_ids,
+        std::span<const size_t> counts
+    );
 
     /**
      * @brief Копирует частоты в правую сторону и обнуляет левую.
@@ -47,7 +52,7 @@ public:
      * @brief Переносит объект одной категории из правой стороны в левую.
      * @param target категория переносимого объекта
      */
-    void update(double target);
+    void update(double target, double weight);
 
     /**
      * @brief Возвращает H = A_L/m_L + A_R/m_R.

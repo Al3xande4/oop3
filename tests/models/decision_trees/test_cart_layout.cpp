@@ -4,10 +4,8 @@
 
 #include "cart_test_data.hpp"
 #include "models/decision_trees/cart.hpp"
-#include "models/decision_trees/criteria/gini.hpp"
 #include "models/decision_trees/criteria/variance.hpp"
 #include "models/decision_trees/leaf/mean_leaf.hpp"
-#include "models/decision_trees/leaf/proba_leaf.hpp"
 #include "models/decision_trees/tree_builder.hpp"
 #include "test_util.hpp"
 
@@ -29,8 +27,8 @@ void test_regression_predictions_match()
     LabeledDataset row_major = make_nested_regression(Layout::RowMajor);
     LabeledDataset col_major = make_nested_regression(Layout::ColumnMajor);
 
-    CartRegressor rm_model(4, 2, 1);
-    CartRegressor cm_model(4, 2, 1);
+    CartRegressor rm_model({4, 2, 1});
+    CartRegressor cm_model({4, 2, 1});
 
     rm_model.fit(row_major.X, row_major.y);
     cm_model.fit(col_major.X, col_major.y);
@@ -53,8 +51,8 @@ void test_classification_matches()
     LabeledDataset row_major = make_three_class(Layout::RowMajor);
     LabeledDataset col_major = make_three_class(Layout::ColumnMajor);
 
-    CartClassifier rm_model(4, 2, 1);
-    CartClassifier cm_model(4, 2, 1);
+    CartClassifier rm_model({4, 2, 1});
+    CartClassifier cm_model({4, 2, 1});
 
     rm_model.fit(row_major.X, row_major.y);
     cm_model.fit(col_major.X, col_major.y);
@@ -147,7 +145,7 @@ void test_wide_matrix_both_layouts()
                 CHECK_NEAR(col(i), rows[i][j], 1e-12);
         }
 
-        CartClassifier model(3, 2, 1);
+        CartClassifier model({3, 2, 1});
         model.fit(X, y);
 
         Matrix proba = model.predict_proba(X);

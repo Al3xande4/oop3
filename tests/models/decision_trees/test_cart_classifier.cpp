@@ -11,7 +11,7 @@ void test_classes_sorted()
     // classes() возвращает метки по возрастанию в порядке столбцов predict_proba.
     LabeledDataset data = make_three_class();
 
-    CartClassifier model(3, 2, 1);
+    CartClassifier model(TreeParams{3, 2, 1});
     model.fit(data.X, data.y);
 
     std::span<const double> classes = model.classes();
@@ -25,7 +25,7 @@ void test_proba_shape_and_sums()
 {
     LabeledDataset data = make_three_class();
 
-    CartClassifier model(3, 2, 1);
+    CartClassifier model(TreeParams{3, 2, 1});
     model.fit(data.X, data.y);
 
     Matrix proba = model.predict_proba(data.X);
@@ -51,7 +51,7 @@ void test_leaf_missing_class_has_zero_probability()
     Matrix X = make_matrix({{0.}, {1.}, {2.}, {3.}, {4.}, {5.}});
     std::vector<double> y = {1., 1., 1., 2., 2., 2.};
 
-    CartClassifier model(3, 2, 1);
+    CartClassifier model(TreeParams{3, 2, 1});
     model.fit(X, y);
 
     std::span<const double> classes = model.classes();
@@ -76,7 +76,7 @@ void test_predict_agrees_with_proba()
 {
     LabeledDataset data = make_three_class();
 
-    CartClassifier model(3, 2, 1);
+    CartClassifier model(TreeParams{3, 2, 1});
     model.fit(data.X, data.y);
 
     std::span<const double> classes = model.classes();
@@ -103,7 +103,7 @@ void test_tie_prefers_smaller_label()
     Matrix X = make_matrix({{1.}, {1.}, {1.}, {1.}});
     std::vector<double> y = {0., 1., 0., 1.};
 
-    CartClassifier model(3, 2, 1);
+    CartClassifier model(TreeParams{3, 2, 1});
     model.fit(X, y);
 
     Matrix proba = model.predict_proba(X);
@@ -122,7 +122,7 @@ void test_mixed_leaf_frequencies()
     Matrix X = make_matrix({{0.}, {10.}, {10.}, {10.}, {10.}, {10.}});
     std::vector<double> y = {0., 0., 0., 1., 1., 1.};
 
-    CartClassifier model(5, 2, 1);
+    CartClassifier model(TreeParams{5, 2, 1});
     model.fit(X, y);
 
     Matrix proba = model.predict_proba(X);

@@ -15,7 +15,7 @@ void test_depth_zero_labels()
     Matrix X = make_matrix({{0.}, {1.}, {2.}, {3.}});
     std::vector<double> y = {10., 10., 42., 100.};
 
-    CartClassifier model(0, 2, 1);
+    CartClassifier model(TreeParams{0, 2, 1});
     model.fit(X, y);
 
     std::span<const double> classes = model.classes();
@@ -47,7 +47,7 @@ void test_split_with_arbitrary_labels()
     Matrix X = make_matrix({{0.}, {1.}, {2.}, {7.}, {8.}, {9.}});
     std::vector<double> y = {10., 10., 10., 42., 42., 100.};
 
-    CartClassifier model(3, 2, 1);
+    CartClassifier model(TreeParams{3, 2, 1});
     model.fit(X, y);
 
     std::span<const double> classes = model.classes();

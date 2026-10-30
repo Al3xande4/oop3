@@ -8,18 +8,12 @@
 #include "criteria/gini.hpp"
 #include "criteria/variance.hpp"
 #include "models/api/errors.hpp"
+#include "models/common/validation.hpp"
 #include "split_finder.hpp"
 
 void DecisionStumpRegressor::fit(const Matrix &features, std::span<const double> targets)
 {
-    if (features.get_rows() != targets.size())
-        throw DimensionMismatch(
-            "DecisionStump.fit: features and targets mismatch sizes: features - " +
-            std::to_string(features.get_rows()) + ", targets - " + std::to_string(targets.size())
-        );
-
-    if (targets.size() == 0)
-        throw EmptyData("DecisionStump.fit: targets size is 0");
+    validation::validate_fit_input(features, targets, "DecisionStumpRegressor");
 
     m_fitted = true;
     m_fit_feature_size = features.get_cols();
@@ -96,14 +90,8 @@ std::vector<double> DecisionStumpRegressor::predict(const Matrix &features) cons
 
 void DecisionStumpClassifier::fit(const Matrix &features, std::span<const double> targets)
 {
-    if (features.get_rows() != targets.size())
-        throw DimensionMismatch(
-            "DecisionStump.fit: features and targets mismatch sizes: features - " +
-            std::to_string(features.get_rows()) + ", targets - " + std::to_string(targets.size())
-        );
 
-    if (targets.size() == 0)
-        throw EmptyData("DecisionStump.fit: targets size is 0");
+    validation::validate_fit_input(features, targets, "DecisionStumpClassifier");
 
     std::vector<size_t> object_ids(features.get_rows());
     std::iota(object_ids.begin(), object_ids.end(), 0ULL);
@@ -115,7 +103,9 @@ void DecisionStumpClassifier::fit(const Matrix &features, std::span<const double
     GiniCriteria crit(classes_count);
 
     SplitFinder m_split_finder;
+    std::vector<size_t> counts(features.get_rows(), 1);
     m_split = m_split_finder.find_best(features, targets, object_ids, feature_ids, crit, m_min_samples_leaf);
+
     m_fitted = true;
     m_fit_feature_size = features.get_cols();
 

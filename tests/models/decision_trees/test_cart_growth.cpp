@@ -8,6 +8,7 @@
 #include "models/decision_trees/cart.hpp"
 #include "models/decision_trees/criteria/variance.hpp"
 #include "models/decision_trees/leaf/mean_leaf.hpp"
+#include "models/decision_trees/max_feature.hpp"
 #include "models/decision_trees/tree_builder.hpp"
 #include "test_util.hpp"
 
@@ -28,8 +29,8 @@ void test_tree_differs_from_stump()
     // Вложенные пороги: дерево глубже одного уровня отличается от пня.
     LabeledDataset data = make_nested_regression();
 
-    CartRegressor stump_level(1, 2, 1);
-    CartRegressor tree(4, 2, 1);
+    CartRegressor stump_level({1, 2, 1});
+    CartRegressor tree({4, 2, 1});
 
     stump_level.fit(data.X, data.y);
     tree.fit(data.X, data.y);
@@ -145,7 +146,7 @@ void test_predictions_improve_with_depth()
     double previous = std::numeric_limits<double>::infinity();
     for (std::size_t max_depth : {std::size_t{0}, std::size_t{1}, std::size_t{2}, std::size_t{3}})
     {
-        CartRegressor model(max_depth, 2, 1);
+        CartRegressor model({max_depth, 2, 1});
         model.fit(data.X, data.y);
 
         std::vector<double> predictions = model.predict(data.X);

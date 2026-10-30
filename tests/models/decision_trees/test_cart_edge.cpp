@@ -12,7 +12,7 @@ void test_constant_feature()
     Matrix X = make_matrix({{2., 7.}, {2., 7.}, {2., 7.}, {2., 7.}, {2., 7.}, {2., 7.}});
     std::vector<double> y = {0., 1., 2., 3., 4., 5.};
 
-    CartRegressor model(5, 2, 1);
+    CartRegressor model(TreeParams{5, 2, 1});
     model.fit(X, y);
 
     std::vector<double> predictions = model.predict(X);
@@ -27,7 +27,7 @@ void test_all_targets_constant()
     Matrix X = make_matrix({{0.}, {1.}, {2.}, {3.}});
     std::vector<double> y = {7., 7., 7., 7.};
 
-    CartRegressor model(5, 2, 1);
+    CartRegressor model(TreeParams{5, 2, 1});
     model.fit(X, y);
 
     TreeInfo stats = model.get_info();
@@ -46,14 +46,14 @@ void test_single_object()
     Matrix X = make_matrix({{1.5}});
     std::vector<double> y = {42.};
 
-    CartRegressor model(5, 2, 1);
+    CartRegressor model(TreeParams{5, 2, 1});
     model.fit(X, y);
 
     std::vector<double> predictions = model.predict(X);
     CHECK(predictions.size() == 1);
     CHECK_NEAR(predictions[0], 42., 1e-12);
 
-    CartClassifier classifier(5, 2, 1);
+    CartClassifier classifier(TreeParams{5, 2, 1});
     classifier.fit(X, y);
 
     std::span<const double> classes = classifier.classes();
@@ -72,7 +72,7 @@ void test_single_class()
     Matrix X = make_matrix({{0.}, {1.}, {2.}, {3.}, {4.}});
     std::vector<double> y = {3., 3., 3., 3., 3.};
 
-    CartClassifier model(5, 2, 1);
+    CartClassifier model(TreeParams{5, 2, 1});
     model.fit(X, y);
 
     CHECK(model.classes().size() == 1);
@@ -92,7 +92,7 @@ void test_repeated_values_stay_together()
     Matrix X = make_matrix({{1.}, {1.}, {1.}, {2.}, {2.}, {2.}});
     std::vector<double> y = {0., 0., 0., 10., 10., 10.};
 
-    CartRegressor model(3, 2, 1);
+    CartRegressor model(TreeParams{3, 2, 1});
     model.fit(X, y);
 
     std::vector<double> predictions = model.predict(X);
@@ -108,7 +108,7 @@ void test_min_samples_leaf_blocks_split()
     Matrix X = make_matrix({{0.}, {1.}, {2.}, {3.}});
     std::vector<double> y = {0., 0., 10., 10.};
 
-    CartRegressor model(5, 2, 3);
+    CartRegressor model(TreeParams{5, 2, 3});
     model.fit(X, y);
 
     std::vector<double> predictions = model.predict(X);
@@ -122,7 +122,7 @@ void test_min_samples_split_blocks_split()
     Matrix X = make_matrix({{0.}, {1.}, {2.}});
     std::vector<double> y = {0., 5., 10.};
 
-    CartRegressor model(5, 4, 1);
+    CartRegressor model(TreeParams{5, 4, 1});
     model.fit(X, y);
 
     std::vector<double> predictions = model.predict(X);
@@ -135,9 +135,9 @@ void test_depth_limits_growth()
     // Одни и те же данные: глубина 0, 1 и 2 дают разную точность воспроизведения.
     LabeledDataset data = make_nested_regression();
 
-    CartRegressor depth0(0, 2, 1);
-    CartRegressor depth1(1, 2, 1);
-    CartRegressor depth2(2, 2, 1);
+    CartRegressor depth0(TreeParams{0, 2, 1});
+    CartRegressor depth1(TreeParams{1, 2, 1});
+    CartRegressor depth2(TreeParams{2, 2, 1});
 
     depth0.fit(data.X, data.y);
     depth1.fit(data.X, data.y);
@@ -178,7 +178,7 @@ void test_two_features_both_usable()
     });
     std::vector<double> y = {0., 0., 0., 0., 10., 10., 10., 10.};
 
-    CartRegressor model(2, 2, 1);
+    CartRegressor model(TreeParams{2, 2, 1});
     model.fit(X, y);
 
     std::vector<double> predictions = model.predict(X);

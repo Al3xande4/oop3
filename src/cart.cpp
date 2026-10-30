@@ -30,7 +30,7 @@ int main(int argc, char *argv[])
         TransformedDataset dataset = TransformedDataset::load(path_binary);
         auto [train, test] = dataset.split(0.6);
 
-        auto model = CartRegressor(*options.max_depth, *options.min_samples_split, *options.min_samples_leaf);
+        auto model = CartRegressor({*options.max_depth, *options.min_samples_split, *options.min_samples_leaf});
         model.fit(train.matrix, train.target_values);
 
         auto info = model.get_info();

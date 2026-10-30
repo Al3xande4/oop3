@@ -54,4 +54,29 @@ class IClassifier : public IModel
 public:
     virtual Matrix predict_proba(const Matrix &) const = 0;
     virtual std::span<const double> classes() const = 0;
+
+    std::vector<double> predict(const Matrix &features) const override
+    {
+        Matrix probas = predict_proba(features);
+
+        std::vector<double> result(features.get_rows());
+
+        for (size_t row = 0; row < features.get_rows(); row++)
+        {
+            size_t best_index = -1;
+            double best_probability = -1.;
+
+            for (size_t p = 0; p < probas.get_cols(); p++)
+            {
+                if (probas(row, p) > best_probability)
+                {
+                    best_index = p;
+                    best_probability = probas(row, p);
+                }
+            }
+            result[row] = classes()[best_index];
+        }
+
+        return result;
+    }
 };

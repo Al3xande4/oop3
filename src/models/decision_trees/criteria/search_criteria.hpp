@@ -9,10 +9,12 @@ concept SearchCriteria = requires(
     const C const_criteria,
     std::span<const double> targets,
     std::span<const size_t> objects_ids,
-    double target
+    std::span<const size_t> counts,
+    double target,
+    double weight
 ) {
-    { criteria.calculate_total(targets, objects_ids) } -> std::same_as<void>;
+    { criteria.calculate_total(targets, objects_ids, counts) } -> std::same_as<void>;
     { criteria.init() } -> std::same_as<void>;
-    { criteria.update(target) } -> std::same_as<void>;
+    { criteria.update(target, weight) } -> std::same_as<void>;
     { const_criteria.score() } -> std::convertible_to<double>;
 };

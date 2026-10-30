@@ -1,18 +1,27 @@
 #include "proba_leaf.hpp"
 
-ProbaLeaf::value_type ProbaLeaf::build(std::span<const double> targets, std::span<const size_t> object_ids) const
+#include <span>
+
+ProbaLeaf::value_type ProbaLeaf::build(
+    std::span<const double> targets,
+    std::span<const size_t> object_ids,
+    std::span<const size_t> counts
+) const
 {
     value_type probabilities(m_classses_count, 0.0);
 
     if (object_ids.empty() || m_classses_count == 0)
         return probabilities;
 
+    double w = 0.;
     for (size_t id : object_ids)
-        probabilities[(size_t)targets[id]] += 1.0;
+    {
+        probabilities[(size_t)targets[id]] += counts[id];
+        w += counts[id];
+    }
 
-    auto total_samples = static_cast<double>(object_ids.size());
     for (double &prob : probabilities)
-        prob /= total_samples;
+        prob /= w;
 
     return probabilities;
 }
