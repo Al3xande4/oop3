@@ -40,8 +40,10 @@ void CartRegressor::fit_with_counts(
         m_random_state
     );
 
-    std::vector<size_t> object_ids(features.get_rows());
-    std::iota(object_ids.begin(), object_ids.end(), 0ULL);
+    std::vector<size_t> object_ids;
+    for (size_t index = 0; index < counts.size(); index++)
+        if (counts[index] > 0)
+            object_ids.push_back(index);
 
     std::vector<size_t> feature_ids(features.get_cols());
     std::iota(feature_ids.begin(), feature_ids.end(), 0ULL);
@@ -95,8 +97,10 @@ void CartClassifier::fit_with_counts(
         m_random_state
     );
 
-    std::vector<size_t> object_ids(features.get_rows());
-    std::iota(object_ids.begin(), object_ids.end(), 0ULL);
+    std::vector<size_t> object_ids;
+    for (size_t index = 0; index < counts.size(); index++)
+        if (counts[index] > 0)
+            object_ids.push_back(index);
 
     std::vector<size_t> feature_ids(features.get_cols());
     std::iota(feature_ids.begin(), feature_ids.end(), 0ULL);

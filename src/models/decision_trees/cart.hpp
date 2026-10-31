@@ -13,7 +13,7 @@
 
 struct TreeParams
 {
-    size_t max_depth;
+    std::optional<size_t> max_depth;
     size_t min_samples_split;
     size_t min_samples_leaf;
 };
@@ -21,7 +21,7 @@ struct TreeParams
 class ICartModel
 {
 protected:
-    size_t m_max_depth;
+    std::optional<size_t> m_max_depth;
     size_t m_min_samples_split;
     size_t m_min_samples_leaf;
 

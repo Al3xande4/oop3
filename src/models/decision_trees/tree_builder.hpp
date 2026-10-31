@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <cstddef>
 #include <cstdint>
+#include <optional>
 #include <random>
 
 #include "criteria/search_criteria.hpp"
@@ -19,7 +20,7 @@ class TreeBuilder
 private:
     Crit m_criteria;
     LeafStrat m_leaf_strategy;
-    size_t m_max_depth;
+    std::optional<size_t> m_max_depth;
     size_t m_min_samples_split;
     size_t m_min_samples_leaf;
 
@@ -35,7 +36,7 @@ public:
     TreeBuilder(
         Crit criteria,
         LeafStrat leaf_strat,
-        size_t max_depth,
+        std::optional<size_t> max_depth,
         size_t min_samples_split,
         size_t min_samples_leaf,
         MaxFeature max_feature = MaxFeaturesMode::All,
@@ -64,6 +65,28 @@ public:
         default_counts.assign(features.get_rows(), 1);
         return build(features, targets, object_ids, feature_ids, default_counts);
     }
+
+private:
+    struct BuildContext
+    {
+        TreeBuilder &builder;
+        const Matrix &features;
+        std::span<const double> targets;
+        std::span<const size_t> counts;
+        std::span<const size_t> feature_ids;
+        std::size_t q;
+
+        Node<value_type> build_node(std::span<std::size_t> object_ids, size_t depth = 0);
+
+        bool should_stop(std::span<const std::size_t> object_ids, size_t depth) const;
+        std::vector<size_t> select_features();
+        std::optional<Split> find_best_split(
+            std::span<const std::size_t> object_ids,
+            std::span<const size_t> candidate_features
+        );
+        std::pair<std::span<size_t>, std::span<size_t>> partition(std::span<size_t> object_ids, const Split &split);
+        Leaf<value_type> make_leaf(std::span<const std::size_t> object_ids);
+    };
 };
 
 template <SearchCriteria Crit, LeafStrategy LeafStrat>
@@ -75,69 +98,113 @@ Node<typename TreeBuilder<Crit, LeafStrat>::value_type> TreeBuilder<Crit, LeafSt
     std::span<const size_t> counts
 )
 {
-    size_t q = m_max_feature.calculate(feature_ids.size());
-
-    auto build_node =
-        [&](auto &self, std::span<std::size_t> object_ids, std::span<const std::size_t> feature_ids, size_t depth
-        ) -> Node<value_type>
-    {
-        if (depth == 0)
-            return Leaf<value_type>{m_leaf_strategy.build(targets, object_ids, counts)};
-
-        if (object_ids.size() < m_min_samples_split)
-            return Leaf<value_type>{m_leaf_strategy.build(targets, object_ids, counts)};
-
-        bool all_same = true;
-        for (size_t i = 1; i < object_ids.size(); ++i)
-            if (std::abs(targets[object_ids[i]] - targets[object_ids[0]]) > 1e-9)
-            {
-                all_same = false;
-                break;
-            }
-        if (all_same)
-            return Leaf<value_type>{m_leaf_strategy.build(targets, object_ids, counts)};
-
-        std::vector<size_t> shuffled_feature_ids;
-        if (q != feature_ids.size())
-        {
-            shuffled_feature_ids.resize(feature_ids.size());
-            std::ranges::copy(feature_ids, shuffled_feature_ids.begin());
-            std::ranges::shuffle(shuffled_feature_ids, m_gen);
-            feature_ids = shuffled_feature_ids;
-        }
-
-        std::optional<Split> best = std::nullopt;
-
-        size_t budget = q;
-        for (size_t feature_id : feature_ids)
-        {
-            if (budget == 0)
-                break;
-
-            FeatureSplitResult split_result = m_split_finder.find_for_feature(
-                features, targets, object_ids, feature_id, m_criteria, m_min_samples_leaf, counts
-            );
-            if (!split_result.is_constant)
-                budget--;
-            if (!best || (split_result.split && split_result.split.value().score > best.value().score))
-                best = split_result.split;
-        }
-
-        if (!best)
-            return Leaf<value_type>{m_leaf_strategy.build(targets, object_ids, counts)};
-
-        auto it = std::ranges::partition(
-            object_ids, [&](size_t index) { return features(index, best.value().feature) <= best.value().threshold; }
-        );
-
-        size_t size = it.begin() - object_ids.begin();
-        auto left = object_ids.subspan(0, size);
-        auto right = object_ids.subspan(size);
-
-        Node<value_type> left_node = self(self, left, feature_ids, depth - 1);
-        Node<value_type> right_node = self(self, right, feature_ids, depth - 1);
-
-        return std::make_unique<Branch<value_type>>(std::move(left_node), std::move(right_node), best.value());
+    BuildContext ctx{
+        .builder = *this,
+        .features = features,
+        .targets = targets,
+        .counts = counts,
+        .feature_ids = feature_ids,
+        .q = m_max_feature.calculate(feature_ids.size())
     };
-    return build_node(build_node, object_ids, feature_ids, m_max_depth);
+
+    return ctx.build_node(object_ids);
+}
+
+template <SearchCriteria Crit, LeafStrategy LeafStrat>
+bool TreeBuilder<Crit, LeafStrat>::BuildContext::should_stop(std::span<const std::size_t> object_ids, size_t depth)
+    const
+{
+    if (builder.m_max_depth && builder.m_max_depth.value() <= depth)
+        return true;
+
+    if (object_ids.size() < builder.m_min_samples_split)
+        return true;
+
+    double first = targets[object_ids[0]];
+    return std::ranges::all_of(object_ids, [&](size_t id) { return std::abs(targets[id] - first) < 1e-9; });
+}
+
+template <SearchCriteria Crit, LeafStrategy LeafStrat>
+std::vector<size_t> TreeBuilder<Crit, LeafStrat>::BuildContext::select_features()
+{
+    std::vector<size_t> selected_features(feature_ids.begin(), feature_ids.end());
+    if (q < feature_ids.size())
+        std::ranges::shuffle(selected_features, builder.m_gen);
+
+    return selected_features;
+}
+
+template <SearchCriteria Crit, LeafStrategy LeafStrat>
+std::optional<Split> TreeBuilder<Crit, LeafStrat>::BuildContext::find_best_split(
+    std::span<const size_t> object_ids,
+    std::span<const size_t> candidate_features
+)
+{
+    std::optional<Split> best = std::nullopt;
+
+    size_t budget = q;
+    for (size_t feature_id : candidate_features)
+    {
+        if (budget == 0)
+            break;
+
+        FeatureSplitResult split_result = builder.m_split_finder.find_for_feature(
+            features, targets, object_ids, feature_id, builder.m_criteria, builder.m_min_samples_leaf, counts
+        );
+        if (!split_result.is_constant)
+            budget--;
+        if (split_result.split && (!best || split_result.split->score > best->score))
+            best = split_result.split;
+    }
+
+    return best;
+}
+
+template <SearchCriteria Crit, LeafStrategy LeafStrat>
+std::pair<std::span<size_t>, std::span<size_t>> TreeBuilder<Crit, LeafStrat>::BuildContext::partition(
+    std::span<size_t> object_ids,
+    const Split &split
+)
+{
+    auto mid = std::partition(
+        object_ids.begin(), object_ids.end(), [&](size_t id) { return features(id, split.feature) <= split.threshold; }
+    );
+    size_t left_size = std::distance(object_ids.begin(), mid);
+
+    auto left = object_ids.subspan(0, left_size);
+    auto right = object_ids.subspan(left_size);
+
+    return {left, right};
+}
+
+template <SearchCriteria Crit, LeafStrategy LeafStrat>
+Leaf<typename LeafStrat::value_type> TreeBuilder<Crit, LeafStrat>::BuildContext::make_leaf(
+    std::span<const std::size_t> object_ids
+)
+{
+    return Leaf<value_type>(builder.m_leaf_strategy.build(targets, object_ids, counts));
+}
+
+template <SearchCriteria Crit, LeafStrategy LeafStrat>
+Node<typename TreeBuilder<Crit, LeafStrat>::value_type> TreeBuilder<Crit, LeafStrat>::BuildContext::build_node(
+    std::span<std::size_t> object_ids,
+    size_t depth
+)
+{
+    if (should_stop(object_ids, depth))
+        return make_leaf(object_ids);
+
+    auto candidate_features = select_features();
+
+    std::optional<Split> split = find_best_split(object_ids, candidate_features);
+
+    if (!split)
+        return make_leaf(object_ids);
+
+    auto [left, right] = partition(object_ids, split.value());
+
+    Node<value_type> left_node = build_node(left, depth + 1);
+    Node<value_type> right_node = build_node(right, depth + 1);
+
+    return std::make_unique<Branch<value_type>>(std::move(left_node), std::move(right_node), split.value());
 }

@@ -1,5 +1,8 @@
 #include "cli.hpp"
 
+#include <cstdint>
+#include <optional>
+
 #include <cxxopts.hpp>
 
 LoadOptions parse_load_cli(int argc, char *argv[])
@@ -128,6 +131,52 @@ CartOptions parse_cart_cli(int argc, char *argv[])
     parsed.min_samples_leaf = result["min-samples-leaf"].as<size_t>();
     parsed.min_samples_split = result["min-samples-split"].as<size_t>();
     parsed.max_depth = result["max-depth"].as<size_t>();
+
+    return parsed;
+}
+
+ForestOptions parse_forest_cli(int argc, char *argv[])
+{
+    ForestOptions parsed;
+
+    cxxopts::Options options("cart", "Cart Tree");
+
+    // clang-format off
+    options.add_options()
+        ("help,h", "Help")
+        ("bin,dataset,f", "Path to the dataset binary file", cxxopts::value<std::filesystem::path>())
+        ("estimators", "Number of estimators(trees)", cxxopts::value<size_t>()->default_value("100"))
+        ("bootstrap-off", "Bootstrap off", cxxopts::value<bool>())
+        ("max-samples", "Max samples", cxxopts::value<size_t>())
+        ("max-features", "Max Features mode/count", cxxopts::value<std::string>()->default_value("All"))
+        ("max-depth", "Max depth", cxxopts::value<size_t>()->default_value("6"))
+        ("min-samples-leaf", "Min samples leaf", cxxopts::value<size_t>()->default_value("1"))
+        ("min-samples-split", "Min samples split", cxxopts::value<size_t>()->default_value("2"))
+        ("jobs", "Number of jobs", cxxopts::value<size_t>()->default_value("1"))
+        ("random-state", "Random state", cxxopts::value<std::uint32_t>()->default_value("0"));
+    // clang-format on
+
+    auto result = options.parse(argc, argv);
+
+    parsed.help = result.count("help") > 0;
+    parsed.help_text = options.help();
+
+    if (result.count("dataset"))
+        parsed.dataset = result["dataset"].as<std::filesystem::path>();
+
+    parsed.n_estimators = result["estimators"].as<size_t>();
+    parsed.bootstrap = result.count("bootstrap-off") == 0;
+    if (result.count("max-samples"))
+        parsed.max_samples = result["max-samples"].as<size_t>();
+    else
+        parsed.max_samples = std::nullopt;
+
+    parsed.max_features = result["max-features"].as<std::string>();
+    parsed.max_depth = result["max-depth"].as<std::size_t>();
+    parsed.min_samples_leaf = result["min-samples-leaf"].as<size_t>();
+    parsed.min_samples_split = result["min-samples-split"].as<size_t>();
+    parsed.n_jobs = result["jobs"].as<size_t>();
+    parsed.random_state = result["random-state"].as<std::uint32_t>();
 
     return parsed;
 }

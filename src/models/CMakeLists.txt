@@ -11,5 +11,6 @@ add_library(core
     decision_trees/leaf/mean_leaf.cpp
     decision_trees/leaf/proba_leaf.cpp
     decision_trees/cart.cpp
+    decision_trees/forest.cpp
 )
 target_link_libraries(core PUBLIC models_api)

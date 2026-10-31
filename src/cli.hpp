@@ -1,9 +1,17 @@
 #pragma once
 
 #include <cstddef>
+#include <cstdint>
 #include <filesystem>
 #include <optional>
+#include <stdexcept>
 #include <string>
+
+class CliError : public std::runtime_error
+{
+public:
+    CliError(const std::string &message) : std::runtime_error(message) {}
+};
 
 struct LoadOptions
 {
@@ -51,7 +59,25 @@ struct CartOptions
     std::string help_text;
 };
 
+struct ForestOptions
+{
+    std::optional<std::filesystem::path> dataset;
+    std::optional<size_t> n_estimators;
+    std::optional<bool> bootstrap = true;
+    std::optional<size_t> max_samples;
+    std::optional<std::string> max_features;
+    std::optional<size_t> max_depth;
+    std::optional<size_t> min_samples_leaf;
+    std::optional<size_t> min_samples_split;
+    std::optional<std::uint32_t> random_state;
+    std::optional<size_t> n_jobs;
+
+    bool help = false;
+    std::string help_text;
+};
+
 KnnOptions parse_knn_cli(int argc, char *argv[]);
 LoadOptions parse_load_cli(int argc, char *argv[]);
 StumpOptions parse_stump_cli(int argc, char *argv[]);
 CartOptions parse_cart_cli(int argc, char *argv[]);
+ForestOptions parse_forest_cli(int argc, char *argv[]);
