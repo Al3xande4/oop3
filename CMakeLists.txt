@@ -24,7 +24,11 @@ add_compile_options(-Wall -Wextra)
 # Санитайзеры только в Debug: покрывают ошибки памяти и неопределённое поведение.
 # Переопределяется через -DSANITIZE=OFF, если инструменты недоступны.
 option(SANITIZE "Enable AddressSanitizer and UndefinedBehaviorSanitizer (Debug)" ON)
-if(SANITIZE)
+option(SANITIZE_THREAD "Enable ThreadSanitizer (Debug, mutually exclusive with SANITIZE)" OFF)
+if(SANITIZE_THREAD)
+    add_compile_options(-fsanitize=thread -fno-omit-frame-pointer -no-pie)
+    add_link_options(-fsanitize=thread -no-pie)
+elseif(SANITIZE)
     add_compile_options(-fsanitize=address,undefined -fno-omit-frame-pointer)
     add_link_options(-fsanitize=address,undefined)
 endif()
