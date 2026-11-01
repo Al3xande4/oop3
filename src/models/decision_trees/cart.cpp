@@ -26,6 +26,7 @@ void CartRegressor::fit_with_counts(
     std::span<const size_t> counts
 )
 {
+    m_fitted = false;
     validation::validate_fit_input(features, targets, "CartRegressor");
 
     if (counts.size() != features.get_rows())
@@ -45,6 +46,9 @@ void CartRegressor::fit_with_counts(
     for (size_t index = 0; index < counts.size(); index++)
         if (counts[index] > 0)
             object_ids.push_back(index);
+
+    if (object_ids.empty())
+        throw EmptyData("CartRegressor.fit_with_counts: no positive counts");
 
     std::vector<size_t> feature_ids(features.get_cols());
     std::iota(feature_ids.begin(), feature_ids.end(), 0ULL);
@@ -84,6 +88,7 @@ void CartClassifier::fit_with_counts(
     std::span<const size_t> counts
 )
 {
+    m_fitted = false;
     validation::validate_fit_input(features, targets, "CartClassifier");
 
     if (counts.size() != features.get_rows())
@@ -105,6 +110,9 @@ void CartClassifier::fit_with_counts(
     for (size_t index = 0; index < counts.size(); index++)
         if (counts[index] > 0)
             object_ids.push_back(index);
+
+    if (object_ids.empty())
+        throw EmptyData("CartClassifier.fit_with_counts: no positive counts");
 
     std::vector<size_t> feature_ids(features.get_cols());
     std::iota(feature_ids.begin(), feature_ids.end(), 0ULL);

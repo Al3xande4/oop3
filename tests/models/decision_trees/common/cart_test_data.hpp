@@ -7,8 +7,8 @@
 #include <vector>
 
 #include "dataset/matrix.hpp"
-#include "models/decision_trees/split.hpp"
-#include "models/decision_trees/tree_node.hpp"
+#include "models/decision_trees/engine/split.hpp"
+#include "models/decision_trees/engine/tree_node.hpp"
 
 /// Общие фикстуры для тестов дерева CART.
 

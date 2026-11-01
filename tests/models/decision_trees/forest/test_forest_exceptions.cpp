@@ -28,6 +28,14 @@ void test_bad_hyperparameters()
     // n_jobs == 0
     CHECK_THROWS_AS(ForestRegressor(RandomForestParams{.n_jobs = 0}), HyperParameterError);
     CHECK_THROWS_AS(ForestClassifier(RandomForestParams{.n_jobs = 0}), HyperParameterError);
+
+    // max_depth == 0 (ТЗ: "положительный предел глубины")
+    CHECK_THROWS_AS(ForestRegressor(RandomForestParams{.max_depth = 0}), HyperParameterError);
+    CHECK_THROWS_AS(ForestClassifier(RandomForestParams{.max_depth = 0}), HyperParameterError);
+
+    // max_features == 0
+    CHECK_THROWS_AS(ForestRegressor(RandomForestParams{.max_features = MaxFeature(0)}), HyperParameterError);
+    CHECK_THROWS_AS(ForestClassifier(RandomForestParams{.max_features = MaxFeature(0)}), HyperParameterError);
 }
 
 void test_predict_before_fit()
@@ -53,6 +61,10 @@ void test_dimension_mismatch_fit()
 
     ForestClassifier classifier(RandomForestParams{.estimators = 5});
     CHECK_THROWS_AS(classifier.fit(data.X, shorter_y), DimensionMismatch);
+
+    // max_samples > rows throws HyperParameterError
+    ForestRegressor regressor_samples(RandomForestParams{.estimators = 5, .max_samples = 100});
+    CHECK_THROWS_AS(regressor_samples.fit(data.X, data.y), HyperParameterError);
 }
 
 void test_empty_data_fit()

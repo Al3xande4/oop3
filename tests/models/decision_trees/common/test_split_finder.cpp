@@ -7,9 +7,9 @@
 #include <vector>
 
 #include "cart_test_data.hpp"
-#include "models/decision_trees/criteria/gini.hpp"
-#include "models/decision_trees/criteria/variance.hpp"
-#include "models/decision_trees/split_finder.hpp"
+#include "models/decision_trees/engine/criteria/gini.hpp"
+#include "models/decision_trees/engine/criteria/variance.hpp"
+#include "models/decision_trees/engine/split_finder.hpp"
 #include "test_util.hpp"
 
 namespace

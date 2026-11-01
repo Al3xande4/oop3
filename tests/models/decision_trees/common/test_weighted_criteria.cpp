@@ -3,9 +3,10 @@
 #include <vector>
 
 #include "cart_test_data.hpp"
-#include "models/decision_trees/criteria/gini.hpp"
-#include "models/decision_trees/criteria/variance.hpp"
-#include "models/decision_trees/split_finder.hpp"
+#include "models/decision_trees/cart.hpp"
+#include "models/decision_trees/engine/criteria/gini.hpp"
+#include "models/decision_trees/engine/criteria/variance.hpp"
+#include "models/decision_trees/engine/split_finder.hpp"
 #include "test_util.hpp"
 
 // Взвешенные критерии сравниваются с медленным/наивным подсчетом.
@@ -112,11 +113,39 @@ void test_constant_candidates_continue_search()
     CHECK_NEAR(best->threshold, 5.0, 1e-9);
 }
 
+// Проверка пункта ТЗ:
+// "классификация проверяет усреднение вероятностей, отсутствующие классы,
+// ничьи, один класс и неравные кратности"
+void test_unequal_weights_classification()
+{
+    // Два объекта с одинаковым признаком (нельзя разделить):
+    // объект 0: класс 0, вес 1
+    // объект 1: класс 1, вес 9
+    Matrix X = make_matrix({{0.0}, {0.0}});
+    std::vector<double> y = {0.0, 1.0};
+    std::vector<size_t> counts = {1, 9};
+
+    CartClassifier classifier(TreeParams{.max_depth = 1, .min_samples_split = 2, .min_samples_leaf = 1});
+    classifier.fit_with_counts(X, y, counts);
+
+    Matrix proba = classifier.predict_proba(X);
+    CHECK(proba.get_cols() == 2);
+    // Доля класса 0 = 1 / (1 + 9) = 0.1
+    CHECK_NEAR(proba(0, 0), 0.1, 1e-9);
+    // Доля класса 1 = 9 / (1 + 9) = 0.9
+    CHECK_NEAR(proba(0, 1), 0.9, 1e-9);
+
+    // predict выбирает класс с большей вероятностью (класс 1)
+    auto pred = classifier.predict(X);
+    CHECK_NEAR(pred[0], 1.0, 1e-9);
+}
+
 int main()
 {
     test_weighted_variance_vs_slow();
     test_weighted_gini_vs_slow();
     test_size_constraints_use_distinct_objects_not_weights();
     test_constant_candidates_continue_search();
+    test_unequal_weights_classification();
     return 0;
 }

@@ -4,12 +4,12 @@
 #include <vector>
 
 #include "cart_test_data.hpp"
-#include "models/decision_trees/criteria/gini.hpp"
-#include "models/decision_trees/criteria/variance.hpp"
-#include "models/decision_trees/leaf/mean_leaf.hpp"
-#include "models/decision_trees/leaf/proba_leaf.hpp"
-#include "models/decision_trees/split_finder.hpp"
-#include "models/decision_trees/tree_builder.hpp"
+#include "models/decision_trees/engine/criteria/gini.hpp"
+#include "models/decision_trees/engine/criteria/variance.hpp"
+#include "models/decision_trees/engine/leaf/mean_leaf.hpp"
+#include "models/decision_trees/engine/leaf/proba_leaf.hpp"
+#include "models/decision_trees/engine/split_finder.hpp"
+#include "models/decision_trees/engine/tree_builder.hpp"
 #include "test_util.hpp"
 
 namespace
@@ -144,6 +144,39 @@ void test_classifier_feature_subset()
         CHECK(split.feature == 1);
 }
 
+// Проверка пункта ТЗ:
+// "политика признаков вызывается заново в разных узлах; дерево не ограничено
+// одним набором столбцов на всё время обучения"
+void test_feature_selection_runs_per_node()
+{
+    Matrix X = make_matrix({
+        {0.0, 0.0},
+        {0.0, 10.0},
+        {5.0, 0.0},
+        {5.0, 10.0},
+    });
+    std::vector<double> y = {1.0, 2.0, 10.0, 20.0};
+    auto object_ids = iota_ids(4);
+    std::vector<size_t> feature_ids = {0, 1};
+
+    TreeBuilder<VarianceCriteria, MeanLeaf> builder(
+        VarianceCriteria{}, MeanLeaf{}, 3, 2, 1, MaxFeature(1), 42
+    );
+    auto root = builder.build(X, y, object_ids, feature_ids);
+
+    std::vector<Split> splits;
+    collect_splits(root, splits);
+
+    // При max_features = 1 дерево в корне и в потомках выбирает разные признаки
+    bool has_f0 = false, has_f1 = false;
+    for (const auto &s : splits)
+    {
+        if (s.feature == 0) has_f0 = true;
+        if (s.feature == 1) has_f1 = true;
+    }
+    CHECK(has_f0 && has_f1);
+}
+
 int main()
 {
     test_split_finder_picks_only_allowed_feature();
@@ -151,6 +184,7 @@ int main()
     test_tree_builder_never_uses_forbidden_feature();
     test_tree_builder_all_features_still_work();
     test_classifier_feature_subset();
+    test_feature_selection_runs_per_node();
 
     return finish("Cart feature subset");
 }

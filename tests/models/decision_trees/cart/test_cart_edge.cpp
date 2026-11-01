@@ -3,7 +3,7 @@
 
 #include "cart_test_data.hpp"
 #include "models/decision_trees/cart.hpp"
-#include "models/decision_trees/tree_stats.hpp"
+#include "models/decision_trees/engine/tree_stats.hpp"
 #include "test_util.hpp"
 
 void test_constant_feature()

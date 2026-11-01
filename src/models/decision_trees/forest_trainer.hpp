@@ -7,6 +7,7 @@
 #include <random>
 #include <span>
 #include <stop_token>
+#include <unordered_set>
 #include <vector>
 
 #include "dataset/matrix.hpp"
@@ -37,12 +38,17 @@ public:
 private:
     std::vector<std::uint32_t> _generate_seeds()
     {
-        std::vector<std::uint32_t> seeds(m_params.estimators);
+        std::vector<std::uint32_t> seeds;
+        seeds.reserve(m_params.estimators);
+        std::unordered_set<std::uint32_t> seen;
         std::mt19937 gen(m_params.random_state.value_or(std::random_device{}()));
 
-        for (auto &seed : seeds)
-            seed = static_cast<std::uint32_t>(gen());
-
+        while (seeds.size() < m_params.estimators)
+        {
+            auto s = static_cast<std::uint32_t>(gen());
+            if (seen.insert(s).second)
+                seeds.push_back(s);
+        }
         return seeds;
     }
 

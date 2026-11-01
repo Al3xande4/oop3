@@ -93,11 +93,11 @@ void test_tie_breaking_smaller_label()
     Matrix X = make_matrix({{0.0}, {0.0}});
     std::vector<double> y = {10.0, 20.0};
 
-    // Одно дерево глубины 0 (лист) даст вероятности 0.5 для класса 10 и 0.5 для класса 20
+    // Одно дерево глубины 1 на константных признаках даст вероятности 0.5 для класса 10 и 0.5 для класса 20
     ForestClassifier forest(RandomForestParams{
         .estimators = 1,
         .bootstrap = false,
-        .max_depth = 0,
+        .max_depth = 1,
     });
     forest.fit(X, y);
 

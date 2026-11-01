@@ -115,11 +115,29 @@ void test_layout_invariance()
         CHECK_NEAR(pred_rm[i], pred_mixed[i], 1e-12);
 }
 
+// Проверка пункта ТЗ: "исключение рабочей задачи"
+// Ошибка внутри рабочего потока перехватывается через std::current_exception()
+// и передаётся вызывающему потоку через std::rethrow_exception().
+void test_worker_task_exception()
+{
+    LabeledDataset data = make_step_regression();
+
+    // Запуск параллельного обучения с n_jobs = 4, где max_samples заведомо превышает число строк
+    ForestRegressor model(RandomForestParams{
+        .estimators = 8,
+        .max_samples = 1000, // rows = 8, sample() бросит HyperParameterError внутри потоков
+        .n_jobs = 4,
+    });
+
+    CHECK_THROWS_AS(model.fit(data.X, data.y), HyperParameterError);
+}
+
 int main()
 {
     test_reproducibility_across_n_jobs_regressor();
     test_reproducibility_across_n_jobs_classifier();
     test_repeated_fit();
     test_layout_invariance();
+    test_worker_task_exception();
     return 0;
 }

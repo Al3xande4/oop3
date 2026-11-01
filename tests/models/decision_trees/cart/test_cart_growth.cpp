@@ -6,10 +6,10 @@
 
 #include "cart_test_data.hpp"
 #include "models/decision_trees/cart.hpp"
-#include "models/decision_trees/criteria/variance.hpp"
-#include "models/decision_trees/leaf/mean_leaf.hpp"
-#include "models/decision_trees/max_feature.hpp"
-#include "models/decision_trees/tree_builder.hpp"
+#include "models/decision_trees/engine/criteria/variance.hpp"
+#include "models/decision_trees/engine/leaf/mean_leaf.hpp"
+#include "models/decision_trees/engine/max_feature.hpp"
+#include "models/decision_trees/engine/tree_builder.hpp"
 #include "test_util.hpp"
 
 namespace
@@ -164,6 +164,30 @@ void test_predictions_improve_with_depth()
     CHECK(previous < 1e-12); // глубина 3 уже восстанавливает отклик точно
 }
 
+// Проверка пункта ТЗ:
+// "нулевое улучшение не является автоматическим запретом разбиения, если
+// неоднородность положительна и другие ограничения допускают рост".
+void test_zero_impurity_decrease_split_allowed()
+{
+    // Неоднородный отклик y = {1, -1, 1, -1}, признак x = {1, 2, 3, 4}.
+    // Сумма в корне = 0, S_root^2 / 4 = 0.
+    // При разбиении между 2 и 3 (порог 2.5):
+    // Left: y = {1, -1} -> S_L = 0 -> S_L^2 / 2 = 0
+    // Right: y = {1, -1} -> S_R = 0 -> S_R^2 / 2 = 0
+    // Score = 0 + 0 = 0. Улучшение критерия = 0.0 (zero impurity decrease).
+    // Так как отклики не константны и размеры листьев удовлетворяют min_samples_leaf=2,
+    // разбиение ДОЛЖНО быть разрешено.
+    Matrix X = make_matrix({{1.0}, {2.0}, {3.0}, {4.0}});
+    std::vector<double> y = {1.0, -1.0, 1.0, -1.0};
+
+    CartRegressor model(TreeParams{.max_depth = 1, .min_samples_split = 2, .min_samples_leaf = 2});
+    model.fit(X, y);
+
+    auto info = model.get_info();
+    CHECK(info.branches == 1);
+    CHECK(info.leaves == 2);
+}
+
 int main()
 {
     test_tree_differs_from_stump();
@@ -172,6 +196,7 @@ int main()
     test_grow_two_levels();
     test_depth_limit_bounds_height();
     test_predictions_improve_with_depth();
+    test_zero_impurity_decrease_split_allowed();
 
     return finish("Cart growth");
 }

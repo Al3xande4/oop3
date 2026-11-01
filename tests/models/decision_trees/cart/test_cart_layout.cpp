@@ -4,9 +4,9 @@
 
 #include "cart_test_data.hpp"
 #include "models/decision_trees/cart.hpp"
-#include "models/decision_trees/criteria/variance.hpp"
-#include "models/decision_trees/leaf/mean_leaf.hpp"
-#include "models/decision_trees/tree_builder.hpp"
+#include "models/decision_trees/engine/criteria/variance.hpp"
+#include "models/decision_trees/engine/leaf/mean_leaf.hpp"
+#include "models/decision_trees/engine/tree_builder.hpp"
 #include "test_util.hpp"
 
 namespace
