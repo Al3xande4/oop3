@@ -6,10 +6,10 @@ add_library(core
     common/distance.cpp
     knn/model.cpp
     decision_trees/stump.cpp
-    decision_trees/criteria/variance.cpp
-    decision_trees/criteria/gini.cpp
-    decision_trees/leaf/mean_leaf.cpp
-    decision_trees/leaf/proba_leaf.cpp
+    decision_trees/engine/criteria/variance.cpp
+    decision_trees/engine/criteria/gini.cpp
+    decision_trees/engine/leaf/mean_leaf.cpp
+    decision_trees/engine/leaf/proba_leaf.cpp
     decision_trees/cart.cpp
     decision_trees/forest.cpp
 )

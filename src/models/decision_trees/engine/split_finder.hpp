@@ -27,22 +27,8 @@ public:
         std::span<const std::size_t> object_ids,
         std::span<const std::size_t> feature_ids,
         Crit criteria,
-        std::size_t min_samples_leaf
-    ) const
-    {
-        std::vector<size_t> counts(features.get_rows(), 1);
-        return find_best(features, targets, object_ids, feature_ids, criteria, min_samples_leaf, counts);
-    }
-
-    template <SearchCriteria Crit>
-    std::optional<Split> find_best(
-        const Matrix &features,
-        std::span<const double> targets,
-        std::span<const std::size_t> object_ids,
-        std::span<const std::size_t> feature_ids,
-        Crit criteria,
         std::size_t min_samples_leaf,
-        std::span<const size_t> counts
+        std::span<const size_t> counts = {}
     ) const;
 
     template <SearchCriteria Crit>
@@ -53,7 +39,7 @@ public:
         std::size_t feature_ids,
         Crit criteria,
         std::size_t min_samples_leaf,
-        std::span<const size_t> counts
+        std::span<const size_t> counts = {}
     ) const;
 };
 
@@ -71,7 +57,7 @@ FeatureSplitResult SplitFinder::find_for_feature(
     if (object_ids.size() > targets.size() || object_ids.size() > features.get_rows())
         throw DimensionMismatch("SplitFinder.find_for_feature: objects and features mismatch sizes");
 
-    if (features.get_rows() != counts.size())
+    if (!counts.empty() && features.get_rows() != counts.size())
         throw DimensionMismatch("SplitFinder.find_for_feature: counts and features mismatch sizes");
 
     std::optional<Split> result = std::nullopt;
@@ -94,11 +80,11 @@ FeatureSplitResult SplitFinder::find_for_feature(
         size_t row = order[p];
         size_t next_row = order[p + 1];
 
-        criteria.update(targets[row], counts[row]);
+        criteria.update(targets[row], counts.empty() ? 1 : counts[row]);
         count_left++;
         count_right--;
 
-        if (features(row, std::nullopt)(col) == features(next_row, std::nullopt)(col))
+        if (features(row, col) == features(next_row, col))
             continue;
 
         is_constant = false;
@@ -135,15 +121,10 @@ std::optional<Split> SplitFinder::find_best(
     if (object_ids.size() > targets.size() || object_ids.size() > features.get_rows())
         throw DimensionMismatch("SplitFinder.find_best: objects and features mismatch sizes");
 
-    if (features.get_rows() != counts.size())
+    if (!counts.empty() && features.get_rows() != counts.size())
         throw DimensionMismatch("SplitFinder.find_best: counts and features mismatch sizes");
 
     std::optional<Split> result = std::nullopt;
-    criteria.calculate_total(targets, object_ids, counts);
-
-    std::vector<size_t> order(object_ids.size());
-    for (size_t i = 0; i < object_ids.size(); i++)
-        order[i] = object_ids[i];
 
     std::vector<size_t> columns(feature_ids.size());
     for (size_t i = 0; i < feature_ids.size(); i++)

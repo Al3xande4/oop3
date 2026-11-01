@@ -5,7 +5,7 @@
 #include <variant>
 
 #include "models/common/overloaded.hpp"
-#include "models/decision_trees/tree_node.hpp"
+#include "models/decision_trees/engine/tree_node.hpp"
 
 struct TreeInfo
 {

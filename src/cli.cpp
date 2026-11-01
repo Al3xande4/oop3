@@ -139,7 +139,7 @@ ForestOptions parse_forest_cli(int argc, char *argv[])
 {
     ForestOptions parsed;
 
-    cxxopts::Options options("cart", "Cart Tree");
+    cxxopts::Options options("forest", "Random Forest model");
 
     // clang-format off
     options.add_options()
@@ -149,7 +149,7 @@ ForestOptions parse_forest_cli(int argc, char *argv[])
         ("bootstrap-off", "Bootstrap off", cxxopts::value<bool>())
         ("max-samples", "Max samples", cxxopts::value<size_t>())
         ("max-features", "Max Features mode/count", cxxopts::value<std::string>()->default_value("All"))
-        ("max-depth", "Max depth", cxxopts::value<size_t>()->default_value("6"))
+        ("max-depth", "Max depth", cxxopts::value<size_t>())
         ("min-samples-leaf", "Min samples leaf", cxxopts::value<size_t>()->default_value("1"))
         ("min-samples-split", "Min samples split", cxxopts::value<size_t>()->default_value("2"))
         ("jobs", "Number of jobs", cxxopts::value<size_t>()->default_value("1"))
@@ -171,8 +171,12 @@ ForestOptions parse_forest_cli(int argc, char *argv[])
     else
         parsed.max_samples = std::nullopt;
 
+    if (result.count("max-depth"))
+        parsed.max_depth = result["max-depth"].as<size_t>();
+    else
+        parsed.max_depth = std::nullopt;
+
     parsed.max_features = result["max-features"].as<std::string>();
-    parsed.max_depth = result["max-depth"].as<std::size_t>();
     parsed.min_samples_leaf = result["min-samples-leaf"].as<size_t>();
     parsed.min_samples_split = result["min-samples-split"].as<size_t>();
     parsed.n_jobs = result["jobs"].as<size_t>();

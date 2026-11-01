@@ -4,18 +4,17 @@
 #include <concepts>
 #include <cstddef>
 #include <cstdint>
-#include <exception>
 #include <random>
 #include <span>
 #include <stop_token>
-#include <thread>
 #include <vector>
 
 #include "dataset/matrix.hpp"
 #include "models/common/bootstrap_sampler.hpp"
+#include "models/common/parallel.hpp"
 #include "models/decision_trees/cart.hpp"
+#include "models/decision_trees/engine/max_feature.hpp"
 #include "models/decision_trees/forest.hpp"
-#include "models/decision_trees/max_feature.hpp"
 
 template <class TreeType>
 concept CartTree =
@@ -85,47 +84,15 @@ std::vector<Tree> ForestTrainer<Tree>::train(const Matrix &features, std::span<c
         trees.emplace_back(tree_params, m_params.max_features.value(), seed);
 
     size_t num_workers = std::min(m_params.n_jobs, m_params.estimators);
-    if (num_workers <= 1)
-    {
-        for (size_t i = 0; i < m_params.estimators; i++)
-            _train_one(features, targets, trees[i], seeds[i]);
 
-        return trees;
-    }
-
-    std::vector<std::exception_ptr> errors(num_workers, nullptr);
-    std::stop_source global_stop;
-
-    {
-        std::vector<std::jthread> workers;
-        workers.reserve(num_workers);
-
-        for (size_t worker_id = 0; worker_id < num_workers; worker_id++)
+    ParallelWorker worker{num_workers};
+    worker.perform(
+        [&](size_t worker_id, const std::stop_source &stop)
         {
-            workers.emplace_back(
-                [&, worker_id]()
-                {
-                    try
-                    {
-                        for (size_t i = worker_id; i < m_params.estimators && !global_stop.stop_requested();
-                             i += num_workers)
-                        {
-                            _train_one(features, targets, trees[i], seeds[i]);
-                        }
-                    }
-                    catch (...)
-                    {
-                        errors[worker_id] = std::current_exception();
-                        global_stop.request_stop();
-                    }
-                }
-            );
+            for (size_t i = worker_id; i < m_params.estimators && !stop.stop_requested(); i += num_workers)
+                _train_one(features, targets, trees[i], seeds[i]);
         }
-    }
-
-    for (const auto &error : errors)
-        if (error)
-            std::rethrow_exception(error);
+    );
 
     return trees;
 }

@@ -9,9 +9,9 @@
 #include "criteria/search_criteria.hpp"
 #include "dataset/matrix.hpp"
 #include "leaf/leaf_strategy.hpp"
-#include "models/decision_trees/max_feature.hpp"
-#include "models/decision_trees/split.hpp"
-#include "models/decision_trees/split_finder.hpp"
+#include "models/decision_trees/engine/max_feature.hpp"
+#include "models/decision_trees/engine/split.hpp"
+#include "models/decision_trees/engine/split_finder.hpp"
 #include "tree_node.hpp"
 
 template <SearchCriteria Crit, LeafStrategy LeafStrat>
@@ -142,17 +142,16 @@ std::optional<Split> TreeBuilder<Crit, LeafStrat>::BuildContext::find_best_split
 {
     std::optional<Split> best = std::nullopt;
 
-    size_t budget = q;
-    for (size_t feature_id : candidate_features)
+    size_t n_constant = 0;
+    for (size_t i = 0; i < candidate_features.size() && (i < q || n_constant == i); i++)
     {
-        if (budget == 0)
-            break;
-
         FeatureSplitResult split_result = builder.m_split_finder.find_for_feature(
-            features, targets, object_ids, feature_id, builder.m_criteria, builder.m_min_samples_leaf, counts
+            features, targets, object_ids, candidate_features[i], builder.m_criteria, builder.m_min_samples_leaf, counts
         );
-        if (!split_result.is_constant)
-            budget--;
+
+        if (split_result.is_constant)
+            n_constant++;
+
         if (split_result.split && (!best || split_result.split->score > best->score))
             best = split_result.split;
     }

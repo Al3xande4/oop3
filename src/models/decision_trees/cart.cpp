@@ -4,14 +4,15 @@
 #include <vector>
 
 #include "dataset/matrix.hpp"
+#include "models/api/errors.hpp"
 #include "models/common/validation.hpp"
-#include "models/decision_trees/criteria/gini.hpp"
-#include "models/decision_trees/criteria/variance.hpp"
-#include "models/decision_trees/leaf/mean_leaf.hpp"
-#include "models/decision_trees/leaf/proba_leaf.hpp"
-#include "tree_builder.hpp"
-#include "tree_searcher.hpp"
-#include "tree_stats.hpp"
+#include "models/decision_trees/engine/criteria/gini.hpp"
+#include "models/decision_trees/engine/criteria/variance.hpp"
+#include "models/decision_trees/engine/leaf/mean_leaf.hpp"
+#include "models/decision_trees/engine/leaf/proba_leaf.hpp"
+#include "models/decision_trees/engine/tree_builder.hpp"
+#include "models/decision_trees/engine/tree_searcher.hpp"
+#include "models/decision_trees/engine/tree_stats.hpp"
 
 void CartRegressor::fit(const Matrix &features, std::span<const double> targets)
 {
@@ -27,8 +28,8 @@ void CartRegressor::fit_with_counts(
 {
     validation::validate_fit_input(features, targets, "CartRegressor");
 
-    m_fitted = true;
-    m_fit_feature_size = features.get_cols();
+    if (counts.size() != features.get_rows())
+        throw DimensionMismatch("CartRegressor.fit_with_counts: counts and features mismatch dimensions.");
 
     TreeBuilder tree_builder(
         VarianceCriteria{},
@@ -52,6 +53,9 @@ void CartRegressor::fit_with_counts(
 
     TreeInspector inspector;
     m_info = inspector.info(m_root);
+
+    m_fitted = true;
+    m_fit_feature_size = features.get_cols();
 }
 
 std::vector<double> CartRegressor::predict(const Matrix &features) const
@@ -82,8 +86,8 @@ void CartClassifier::fit_with_counts(
 {
     validation::validate_fit_input(features, targets, "CartClassifier");
 
-    m_fitted = true;
-    m_fit_feature_size = features.get_cols();
+    if (counts.size() != features.get_rows())
+        throw DimensionMismatch("CartClassifier.fit_with_counts: counts and features mismatch dimensions.");
 
     m_mapper.fit(targets);
 
@@ -109,6 +113,9 @@ void CartClassifier::fit_with_counts(
 
     TreeInspector inspector;
     m_info = inspector.info(m_root);
+
+    m_fitted = true;
+    m_fit_feature_size = features.get_cols();
 }
 
 Matrix CartClassifier::predict_proba(const Matrix &features) const

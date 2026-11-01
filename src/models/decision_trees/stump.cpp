@@ -5,11 +5,11 @@
 #include <numeric>
 #include <unordered_map>
 
-#include "criteria/gini.hpp"
-#include "criteria/variance.hpp"
+#include "engine/criteria/gini.hpp"
+#include "engine/criteria/variance.hpp"
 #include "models/api/errors.hpp"
 #include "models/common/validation.hpp"
-#include "split_finder.hpp"
+#include "engine/split_finder.hpp"
 
 void DecisionStumpRegressor::fit(const Matrix &features, std::span<const double> targets)
 {

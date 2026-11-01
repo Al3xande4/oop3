@@ -6,7 +6,7 @@
 
 #include "cli.hpp"
 #include "dataset/transformed.hpp"
-#include "models/decision_trees/max_feature.hpp"
+#include "models/decision_trees/engine/max_feature.hpp"
 
 std::optional<MaxFeature> make_max_feature(const std::optional<std::string> &name)
 {

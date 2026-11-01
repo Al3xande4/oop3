@@ -16,8 +16,9 @@ ProbaLeaf::value_type ProbaLeaf::build(
     double w = 0.;
     for (size_t id : object_ids)
     {
-        probabilities[(size_t)targets[id]] += counts[id];
-        w += counts[id];
+        double c = counts.empty() ? 1.0 : static_cast<double>(counts[id]);
+        probabilities[(size_t)targets[id]] += c;
+        w += c;
     }
 
     for (double &prob : probabilities)

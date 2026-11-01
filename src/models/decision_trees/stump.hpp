@@ -5,7 +5,7 @@
 
 #include "models/api/errors.hpp"
 #include "models/api/model.hpp"
-#include "split.hpp"
+#include "models/decision_trees/engine/split.hpp"
 
 /**
  * @file stump.hpp

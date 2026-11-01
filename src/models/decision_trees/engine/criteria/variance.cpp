@@ -11,8 +11,9 @@ void VarianceCriteria::calculate_total(
 
     for (size_t object_id : object_ids)
     {
-        m_total_sum += counts[object_id] * targets[object_id];
-        m_total_count += counts[object_id];
+        double c = counts.empty() ? 1 : counts[object_id];
+        m_total_sum += c * targets[object_id];
+        m_total_count += c;
     }
 }
 

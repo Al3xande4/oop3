@@ -63,7 +63,7 @@ public:
 
         for (size_t row = 0; row < features.get_rows(); row++)
         {
-            size_t best_index = -1;
+            size_t best_index = 0;
             double best_probability = -1.;
 
             for (size_t p = 0; p < probas.get_cols(); p++)

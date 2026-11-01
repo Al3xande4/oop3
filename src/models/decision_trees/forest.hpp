@@ -3,13 +3,14 @@
 #include <cstddef>
 #include <cstdint>
 #include <optional>
+#include <variant>
 #include <vector>
 
 #include "models/api/errors.hpp"
 #include "models/api/model.hpp"
 #include "models/common/class_mapper.hpp"
 #include "models/decision_trees/cart.hpp"
-#include "models/decision_trees/max_feature.hpp"
+#include "models/decision_trees/engine/max_feature.hpp"
 
 struct RandomForestParams
 {
@@ -57,6 +58,13 @@ public:
 
         if (params.max_samples && params.max_samples.value() == 0)
             throw HyperParameterError("RandomForest: max samples must be greater than 0");
+
+        if (params.max_depth && params.max_depth.value() == 0)
+            throw HyperParameterError("RandomForest: max depth must be greater than 0");
+
+        if (params.max_features && std::holds_alternative<size_t>(params.max_features.value().value) &&
+            std::get<size_t>(params.max_features.value().value) == 0)
+            throw HyperParameterError("RandomForest: max features split must be at least 1");
 
         if (params.min_samples_split < 2)
             throw HyperParameterError("RandomForest: min samples split must be at least 2");

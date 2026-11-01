@@ -7,9 +7,9 @@
 #include "models/api/errors.hpp"
 #include "models/api/model.hpp"
 #include "models/common/class_mapper.hpp"
-#include "models/decision_trees/max_feature.hpp"
-#include "tree_node.hpp"
-#include "tree_stats.hpp"
+#include "models/decision_trees/engine/max_feature.hpp"
+#include "models/decision_trees/engine/tree_node.hpp"
+#include "models/decision_trees/engine/tree_stats.hpp"
 
 struct TreeParams
 {

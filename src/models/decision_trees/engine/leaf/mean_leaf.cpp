@@ -10,9 +10,9 @@ MeanLeaf::value_type MeanLeaf::build(
     double w = 0.;
     for (auto index : object_ids)
     {
-        sum += counts[index] * targets[index];
-        w += counts[index];
+        double c = counts.empty() ? 1.0 : counts[index];
+        sum += c * targets[index];
+        w += c;
     }
-
-    return sum / w;
+    return w > 0.0 ? (sum / w) : 0.0;
 }
