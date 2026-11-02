@@ -7,9 +7,9 @@
 
 #include "engine/criteria/gini.hpp"
 #include "engine/criteria/variance.hpp"
+#include "engine/split_finder.hpp"
 #include "models/api/errors.hpp"
 #include "models/common/validation.hpp"
-#include "engine/split_finder.hpp"
 
 void DecisionStumpRegressor::fit(const Matrix &features, std::span<const double> targets)
 {
@@ -46,7 +46,7 @@ void DecisionStumpRegressor::fit(const Matrix &features, std::span<const double>
 
     for (size_t row = 0; row < features.get_rows(); row++)
     {
-        if (features[row][m_split.value().feature] <= m_split.value().threshold)
+        if (features(row, m_split.value().feature) <= m_split.value().threshold)
         {
             count_left++;
             sum_left += targets[row];
@@ -79,7 +79,7 @@ std::vector<double> DecisionStumpRegressor::predict(const Matrix &features) cons
     {
         if (!m_split)
             result[row] = m_constant;
-        else if (features[row][m_split.value().feature] <= m_split.value().threshold)
+        else if (features(row, m_split.value().feature) <= m_split.value().threshold)
             result[row] = m_left_mean;
         else
             result[row] = m_right_mean;
@@ -134,7 +134,7 @@ void DecisionStumpClassifier::fit(const Matrix &features, std::span<const double
 
     for (size_t row = 0; row < features.get_rows(); row++)
     {
-        if (features[row][m_split.value().feature] <= m_split.value().threshold)
+        if (features(row, m_split.value().feature) <= m_split.value().threshold)
         {
             left_count[targets[row]]++;
             if (left_count[targets[row]] > left_best)
@@ -172,7 +172,7 @@ std::vector<double> DecisionStumpClassifier::predict(const Matrix &features) con
     {
         if (!m_split)
             result[row] = m_constant;
-        else if (features[row][m_split.value().feature] <= m_split.value().threshold)
+        else if (features(row, m_split.value().feature) <= m_split.value().threshold)
             result[row] = m_left_most_common;
         else
             result[row] = m_right_most_common;

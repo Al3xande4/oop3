@@ -5,8 +5,8 @@
 class VarianceCriteria
 {
 private:
-    double m_sum_left, m_sum_right, m_total_sum;
-    double m_count_left, m_count_right, m_total_count;
+    double m_sum_left{0}, m_sum_right{0}, m_total_sum{0};
+    double m_count_left{0}, m_count_right{0}, m_total_count{0};
 
 public:
     /**
@@ -35,4 +35,6 @@ public:
      * @return оценка текущего разбиения (больше — лучше)
      */
     double score() const;
+
+    size_t total_count() const { return m_total_count; }
 };

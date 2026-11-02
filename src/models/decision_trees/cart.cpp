@@ -12,7 +12,6 @@
 #include "models/decision_trees/engine/leaf/proba_leaf.hpp"
 #include "models/decision_trees/engine/tree_builder.hpp"
 #include "models/decision_trees/engine/tree_searcher.hpp"
-#include "models/decision_trees/engine/tree_stats.hpp"
 
 void CartRegressor::fit(const Matrix &features, std::span<const double> targets)
 {
@@ -54,9 +53,6 @@ void CartRegressor::fit_with_counts(
     std::iota(feature_ids.begin(), feature_ids.end(), 0ULL);
 
     m_root = tree_builder.build(features, targets, object_ids, feature_ids, counts);
-
-    TreeInspector inspector;
-    m_info = inspector.info(m_root);
 
     m_fitted = true;
     m_fit_feature_size = features.get_cols();
@@ -118,9 +114,6 @@ void CartClassifier::fit_with_counts(
     std::iota(feature_ids.begin(), feature_ids.end(), 0ULL);
 
     m_root = tree_builder.build(features, m_mapper.encode(targets), object_ids, feature_ids, counts);
-
-    TreeInspector inspector;
-    m_info = inspector.info(m_root);
 
     m_fitted = true;
     m_fit_feature_size = features.get_cols();

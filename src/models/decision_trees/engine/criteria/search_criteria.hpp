@@ -17,4 +17,5 @@ concept SearchCriteria = requires(
     { criteria.init() } -> std::same_as<void>;
     { criteria.update(target, weight) } -> std::same_as<void>;
     { const_criteria.score() } -> std::convertible_to<double>;
+    { const_criteria.total_count() } -> std::convertible_to<size_t>;
 };

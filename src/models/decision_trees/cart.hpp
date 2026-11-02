@@ -25,8 +25,8 @@ protected:
     size_t m_min_samples_split;
     size_t m_min_samples_leaf;
 
-    size_t m_fit_feature_size{0}; ///< Число столбцов обучающей матрицы
-    bool m_fitted{false};         ///< Признак успешного fit
+    size_t m_fit_feature_size{0};
+    bool m_fitted{false};
 
     MaxFeature m_max_feature;
     std::uint32_t m_random_state;
@@ -51,7 +51,7 @@ public:
         std::span<const size_t> counts
     ) = 0;
 
-    TreeInfo get_info() const { return m_info; }
+    virtual TreeInfo get_info() const = 0;
 };
 
 class CartRegressor : public IRegressor, public ICartModel
@@ -68,6 +68,15 @@ public:
         override;
 
     std::vector<double> predict(const Matrix &features) const override;
+
+    TreeInfo get_info() const override
+    {
+        if (!m_fitted)
+            throw NotFitted("CartRegressor.get_info: get_info called before fit method");
+
+        TreeInspector inspector;
+        return inspector.info(m_root);
+    }
 };
 
 class CartClassifier : public IClassifier, public ICartModel
@@ -92,5 +101,14 @@ public:
         if (!m_fitted)
             throw NotFitted("CartClassifier.classes: called before fit.");
         return m_mapper.classes();
+    }
+
+    TreeInfo get_info() const override
+    {
+        if (!m_fitted)
+            throw NotFitted("CartRegressor.get_info: get_info called before fit method");
+
+        TreeInspector inspector;
+        return inspector.info(m_root);
     }
 };

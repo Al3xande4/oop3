@@ -18,6 +18,11 @@ const double &Matrix::operator()(std::size_t row, std::size_t col) const &
 
 MatrixSlice<double> Matrix::operator()(std::size_t row, std::nullopt_t) &
 {
+    if (row >= m_rows)
+        throw std::out_of_range(
+            "Matrix::operator(): row index " + std::to_string(row) + " out of range [0, " + std::to_string(m_rows) + ")"
+        );
+
     if (m_cols == 0)
         return MatrixSlice<double>(nullptr, 0, 1, SliceAxis::Row);
 
@@ -29,6 +34,11 @@ MatrixSlice<double> Matrix::operator()(std::size_t row, std::nullopt_t) &
 
 MatrixSlice<const double> Matrix::operator()(std::size_t row, std::nullopt_t) const &
 {
+    if (row >= m_rows)
+        throw std::out_of_range(
+            "Matrix::operator(): row index " + std::to_string(row) + " out of range [0, " + std::to_string(m_rows) + ")"
+        );
+
     if (m_cols == 0)
         return MatrixSlice<const double>(nullptr, 0, 1, SliceAxis::Row);
 
@@ -40,6 +50,11 @@ MatrixSlice<const double> Matrix::operator()(std::size_t row, std::nullopt_t) co
 
 MatrixSlice<double> Matrix::operator()(std::nullopt_t, std::size_t col) &
 {
+    if (col >= m_cols)
+        throw std::out_of_range(
+            "Matrix::operator(): col index " + std::to_string(col) + " out of range [0, " + std::to_string(m_cols) + ")"
+        );
+
     if (m_rows == 0)
         return MatrixSlice<double>(nullptr, 0, 1, SliceAxis::Column);
 
@@ -51,6 +66,11 @@ MatrixSlice<double> Matrix::operator()(std::nullopt_t, std::size_t col) &
 
 MatrixSlice<const double> Matrix::operator()(std::nullopt_t, std::size_t col) const &
 {
+    if (col >= m_cols)
+        throw std::out_of_range(
+            "Matrix::operator(): col index " + std::to_string(col) + " out of range [0, " + std::to_string(m_cols) + ")"
+        );
+
     if (m_rows == 0)
         return MatrixSlice<const double>(nullptr, 0, 1, SliceAxis::Column);
 

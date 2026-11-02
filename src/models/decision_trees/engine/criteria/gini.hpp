@@ -20,9 +20,9 @@ class GiniCriteria
 private:
     std::vector<size_t> m_category_count;
     std::vector<size_t> m_category_count_right;
-    double m_initial_right;
-    size_t m_count_left, m_count_right, m_total_count;
-    double m_left, m_right;
+    double m_initial_right{0};
+    size_t m_count_left{0}, m_count_right{0}, m_total_count{0};
+    double m_left{0}, m_right{0};
 
     size_t m_classes_count;
 
@@ -59,4 +59,6 @@ public:
      * @return оценка текущего разбиения (больше — лучше)
      */
     double score() const;
+
+    size_t total_count() const { return m_total_count; }
 };

@@ -1,11 +1,48 @@
 #include <cstdlib>
 #include <filesystem>
 #include <iostream>
+#include <memory>
 
 #include "cli.hpp"
 #include "dataset/config.hpp"
 #include "dataset/dataset.hpp"
 #include "dataset/imputation.hpp"
+
+std::unique_ptr<NumericImputationStrategy> make_imputation(const std::string &name)
+{
+    if (name == "mean")
+        return std::make_unique<MeanImputation>();
+    if (name == "zero")
+        return std::make_unique<ZeroImputation>();
+    if (name == "median")
+        return std::make_unique<MedianImputation>();
+
+    std::cout << "Unknown imputation strategy, please use one of: mean, zero, median. Using median as default.\n";
+    return std::make_unique<MedianImputation>();
+}
+
+std::unique_ptr<ScalingStrategy> make_scaling(const std::string &name)
+{
+    if (name == "minmax")
+        return std::make_unique<MinMaxScaling>();
+    if (name == "standart" || name == "standard")
+        return std::make_unique<StandartScaling>();
+    if (name == "robust")
+        return std::make_unique<RobustScaling>();
+
+    std::cout << "Unknown scaling strategy, please use one of: minmax, standart, robust. Using robust as default.\n";
+    return std::make_unique<RobustScaling>();
+}
+
+CategoryEncoding make_encoding(const std::string &name)
+{
+    if (name == "ordinal")
+        return CategoryEncoding::ORDINAL;
+    if (name != "onehot")
+        std::cout << "Unknown encoding strategy, please use one of: onehot, ordinal. Using onehot as default.\n";
+
+    return CategoryEncoding::ONE_HOT;
+}
 
 int main(int argc, char *argv[])
 {
@@ -14,58 +51,20 @@ int main(int argc, char *argv[])
     if (options.help)
     {
         std::cout << options.help_text << std::endl;
-        exit(0);
+        return 0;
     }
 
     if (!options.dataset)
     {
         std::cout << "You must specify input file, to see options use --help\n";
-        exit(0);
+        return 1;
     }
 
     std::filesystem::path csvPath = *options.dataset;
 
-    NumericImputationStrategy *imputation;
-    ScalingStrategy *scaling;
-    CategoryEncoding encoding;
-
-    const std::string &impOpt = options.impute;
-    if (impOpt == "mean")
-        imputation = new MeanImputation();
-    else if (impOpt == "zero")
-        imputation = new ZeroImputation();
-    else if (impOpt == "median")
-        imputation = new MedianImputation();
-    else
-    {
-        std::cout << "Unknown imputation strategy, please use one of: mean, zero, median. Using median as default.\n";
-        imputation = new MedianImputation();
-    }
-
-    const std::string &scalingOpt = options.scale;
-    if (scalingOpt == "minmax")
-        scaling = new MinMaxScaling();
-    else if (scalingOpt == "standart")
-        scaling = new StandartScaling();
-    else if (scalingOpt == "robust")
-        scaling = new RobustScaling();
-    else
-    {
-        std::cout
-            << "Unknown scaling strategy, please use one of: minmax, standart, robust. Using minmax as default.\n";
-        scaling = new RobustScaling();
-    }
-
-    const std::string &encodingOpt = options.encode;
-    if (encodingOpt == "onehot")
-        encoding = CategoryEncoding::ONE_HOT;
-    else if (encodingOpt == "ordinal")
-        encoding = CategoryEncoding::ORDINAL;
-    else
-    {
-        std::cout << "Unknown encoding strategy, please use one of: onehot, ordinal. Using onehot as default.\n";
-        encoding = CategoryEncoding::ONE_HOT;
-    }
+    auto imputation = make_imputation(options.impute);
+    auto scaling = make_scaling(options.scale);
+    auto encoding = make_encoding(options.encode);
 
     if (options.histogram)
         datasetconfig::histogram_intervals = *options.histogram;

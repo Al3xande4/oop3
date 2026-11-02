@@ -2,6 +2,14 @@ data
 data/**
 build
 build/**
+build_tsan/
+build_tsan/**
+build_debug/
+build_debug/**
+build_san/
+build_san/**
+build_rel/
+build_rel/**
 output
 output/**
 docs/html

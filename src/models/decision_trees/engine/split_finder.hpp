@@ -61,13 +61,14 @@ FeatureSplitResult SplitFinder::find_for_feature(
         throw DimensionMismatch("SplitFinder.find_for_feature: counts and features mismatch sizes");
 
     std::optional<Split> result = std::nullopt;
-    criteria.calculate_total(targets, object_ids, counts);
+    if (criteria.total_count() == 0)
+        criteria.calculate_total(targets, object_ids, counts);
+
+    size_t col = feature_id;
 
     std::vector<size_t> order(object_ids.size());
     for (size_t i = 0; i < object_ids.size(); i++)
         order[i] = object_ids[i];
-
-    size_t col = feature_id;
     std::ranges::sort(order, [&](size_t a, size_t b) { return features(a, col) < features(b, col); });
 
     criteria.init();
@@ -131,6 +132,7 @@ std::optional<Split> SplitFinder::find_best(
         columns[i] = feature_ids[i];
     std::ranges::sort(columns);
 
+    criteria.calculate_total(targets, object_ids, counts);
     for (size_t col : columns)
     {
         auto split = find_for_feature(features, targets, object_ids, col, criteria, min_samples_leaf, counts).split;

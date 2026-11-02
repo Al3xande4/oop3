@@ -143,6 +143,7 @@ std::optional<Split> TreeBuilder<Crit, LeafStrat>::BuildContext::find_best_split
     std::optional<Split> best = std::nullopt;
 
     size_t n_constant = 0;
+    builder.m_criteria.calculate_total(targets, object_ids, counts);
     for (size_t i = 0; i < candidate_features.size() && (i < q || n_constant == i); i++)
     {
         FeatureSplitResult split_result = builder.m_split_finder.find_for_feature(
@@ -152,8 +153,16 @@ std::optional<Split> TreeBuilder<Crit, LeafStrat>::BuildContext::find_best_split
         if (split_result.is_constant)
             n_constant++;
 
-        if (split_result.split && (!best || split_result.split->score > best->score))
-            best = split_result.split;
+        if (split_result.split)
+        {
+            if (!best || split_result.split->score > best->score ||
+                (split_result.split->score == best->score &&
+                 (split_result.split->feature < best->feature ||
+                  (split_result.split->feature == best->feature && split_result.split->threshold < best->threshold))))
+            {
+                best = split_result.split;
+            }
+        }
     }
 
     return best;

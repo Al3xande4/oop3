@@ -130,10 +130,47 @@ void test_slice_at()
     CHECK_THROWS_AS(slice.at(3), std::out_of_range);
 }
 
+void test_slice_out_of_bounds()
+{
+    // ТЗ Лаб 3: "Создание среза проверяет номер запрошенной строки или столбца"
+    for (Layout layout : {Layout::RowMajor, Layout::ColumnMajor})
+    {
+        Matrix X(4, 3, layout);
+        const Matrix &const_X = X;
+
+        // Выход за границы строк (rows = 4, допустимы 0..3)
+        CHECK_THROWS_AS(X(4, std::nullopt), std::out_of_range);
+        CHECK_THROWS_AS(X(10, std::nullopt), std::out_of_range);
+        CHECK_THROWS_AS(const_X(4, std::nullopt), std::out_of_range);
+        CHECK_THROWS_AS(const_X(10, std::nullopt), std::out_of_range);
+
+        // Выход за границы столбцов (cols = 3, допустимы 0..2)
+        CHECK_THROWS_AS(X(std::nullopt, 3), std::out_of_range);
+        CHECK_THROWS_AS(X(std::nullopt, 10), std::out_of_range);
+        CHECK_THROWS_AS(const_X(std::nullopt, 3), std::out_of_range);
+        CHECK_THROWS_AS(const_X(std::nullopt, 10), std::out_of_range);
+    }
+
+    // rows == 0, cols == 5: допустимы столбцы 0..4, но любая строка должна бросать
+    Matrix empty_rows(0, 5);
+    const Matrix &c_empty_rows = empty_rows;
+    CHECK_THROWS_AS(empty_rows(std::nullopt, 5), std::out_of_range);
+    CHECK_THROWS_AS(empty_rows(0, std::nullopt), std::out_of_range);
+    CHECK_THROWS_AS(c_empty_rows(0, std::nullopt), std::out_of_range);
+
+    // rows == 5, cols == 0: допустимы строки 0..4, но любой столбец должен бросать
+    Matrix empty_cols(5, 0);
+    const Matrix &c_empty_cols = empty_cols;
+    CHECK_THROWS_AS(empty_cols(5, std::nullopt), std::out_of_range);
+    CHECK_THROWS_AS(empty_cols(std::nullopt, 0), std::out_of_range);
+    CHECK_THROWS_AS(c_empty_cols(std::nullopt, 0), std::out_of_range);
+}
+
 int main()
 {
     test_empty_slice();
     test_slice_at();
+    test_slice_out_of_bounds();
     test_non_contiguous();
     test_empty_col_row();
     test_basic(Layout::ColumnMajor);

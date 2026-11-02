@@ -167,6 +167,35 @@ void test_model_routing_consistent_with_criterion()
     }
 }
 
+void test_deterministic_feature_tie_in_tree()
+{
+    // ТЗ: "Разрешение равных оценок детерминировано: меньший индекс признака, затем меньший порог."
+    // Два признака разделяют одинаково: при равных оценках дерево обязано выбрать признак 0,
+    // даже если список признаков передан в обратном порядке {1, 0}.
+    Matrix X = make_matrix({
+        {0., 0.},
+        {1., 1.},
+        {2., 2.},
+        {3., 3.},
+    });
+    std::vector<double> y = {0., 0., 10., 10.};
+    std::vector<std::size_t> object_ids = {0, 1, 2, 3};
+    std::vector<std::size_t> reverse_features = {1, 0};
+
+    TreeBuilder<VarianceCriteria, MeanLeaf> builder(VarianceCriteria{}, MeanLeaf{}, 1, 2, 1);
+    Node<double> root = builder.build(X, y, object_ids, reverse_features);
+
+    std::vector<Split> splits;
+    collect_splits(root, splits);
+
+    CHECK(splits.size() == 1);
+    if (!splits.empty())
+    {
+        CHECK(splits[0].feature == 0);
+        CHECK_NEAR(splits[0].threshold, 1.5, 1e-12);
+    }
+}
+
 int main()
 {
     test_threshold_splits_between_distinct_values();
@@ -174,6 +203,7 @@ int main()
     test_threshold_close_representable_pair();
     test_threshold_is_midpoint();
     test_model_routing_consistent_with_criterion();
+    test_deterministic_feature_tie_in_tree();
 
     return finish("Cart thresholds");
 }
